@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Module for interacting with mattermost.
-
-#p = self.matterMostSession.get("https://chat.example.com/api/v3/teams/all")
-#print(json.dumps(p.content, indent=4))
-
-#p = self.matterMostSession.get("https://chat.example.com/api/v3/teams/<team_id>/channels/")
-#print(json.dumps(p.content, indent=4))
 """
 import os
 import json
@@ -15,6 +9,10 @@ import logging
 
 
 class Mattermost(object):
+    """
+    Interact with a mattermost server.
+    """
+
     def __init__(self, verbose=False):
         self.logger = setup_logging(verbose)
 
@@ -43,9 +41,26 @@ class Mattermost(object):
         self.logger.debug(l)
         # self.mattermostUserId = l.json()["id"]
 
+    def get_teams(self):
+        """
+        Get a list of teams on the server.
+        :return: 
+        """
+        p = self.matterMostSession.get('%s/api/v3/teams/all' % self.server_url)
+        return(json.loads(p.content))
+
+    def get_channels(self, team_id):
+        """
+        Get a list of available channels for a team
+        :param team_id: 
+        :return: 
+        """
+        p = self.matterMostSession.get('%s/api/v3/teams/%s/channels/' % (self.server_url, team_id))
+        return(json.loads(p.content))
+
     def post(self, message):
         """
-        
+        post a message to mattermost
         :param message: 
         :return: 
         """
@@ -72,6 +87,11 @@ class Mattermost(object):
 
 
 def setup_logging(verbose):
+    """
+    Configure logging
+    :param verbose: 
+    :return: 
+    """
     logger = logging.getLogger('Mattermost')
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
@@ -91,6 +111,11 @@ def setup_logging(verbose):
 
 
 def format_timedelta(timedelta):
+    """
+    Format a timedelta into a human-friendly string
+    :param timedelta: 
+    :return: 
+    """
     seconds = timedelta.total_seconds()
 
     days, r = divmod(seconds, 60 * 60 * 24)
@@ -114,6 +139,12 @@ def format_timedelta(timedelta):
 
 
 def format_span(start, end):
+    """
+    format a time span into a human-friendly string
+    :param start: 
+    :param end: 
+    :return: 
+    """
     time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')
     time_string += end.strftime('%H:%M:%S')
 
