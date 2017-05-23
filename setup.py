@@ -18,4 +18,8 @@ setup(
         "Topic :: Scientific/Engineering :: Visualization",
         "License :: OSI Approved :: BSD License",
     ],
+    install_requires = [
+        'requests',
+        ],
+
 )
