@@ -16,4 +16,4 @@ A collection of supporting modules.
 """
 
 __version__ = 1.0
-__all__ = ['mattermost']
+__all__ = ['tomutils.mattermost']
