@@ -10,7 +10,7 @@ setup(
     description = ("A collection of supporting utilities."),
     license = "CC0",
     keywords = "mattermost",
-    url = "http://packages.python.org/tomputils",
+    url = "http://github.com/tparker-usgs/tomputils",
     packages = find_packages(),
     long_description=open(join(dirname(__file__), 'README')).read(),
     classifiers=[
@@ -20,6 +20,7 @@ setup(
     ],
     install_requires = [
         'requests',
+        'future',
         ],
 
 )
