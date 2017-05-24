@@ -5,7 +5,7 @@ matrix:
         - python: 2.7
         - python: 3.6
 install:
-    - conda create -n test-sparse python=$TRAVIS_PYTHON_VERSION flake8 
+    - pip install .
 
 script:
     - flak8
