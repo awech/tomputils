@@ -5,7 +5,6 @@ Module for interacting with mattermost.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from future.builtins import *  # NOQA
-from future.utils import PY3, native_str
 
 import os
 import json
@@ -41,7 +40,8 @@ class Mattermost(object):
             self.session.verify = os.environ['SSL_CA']
 
         url = self.server_url + '/api/v3/users/login'
-        login_data = json.dumps({'login_id': self.user_id, 'password': self.user_pass})
+        login_data = json.dumps({'login_id': self.user_id,
+                                 'password': self.user_pass})
         response = self.session.post(url, data=login_data)
         self.logger.debug(response)
         # self.mattermostUserId = l.json()["id"]
@@ -60,7 +60,8 @@ class Mattermost(object):
         :param team_id: Team Id to check
         :return: Avaliable channels
         """
-        response = self.session.get('%s/api/v3/teams/%s/channels/' % (self.server_url, team_id))
+        req = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
+        response = self.session.get(req)
         return json.loads(response.content)
 
     def post(self, message):
