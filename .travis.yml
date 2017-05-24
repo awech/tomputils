@@ -1,0 +1,11 @@
+language: python
+
+matrix:
+    include:
+        - python: 2.7
+        - python: 3.6
+install:
+    - conda create -n test-sparse python=$TRAVIS_PYTHON_VERSION flake8 
+
+script:
+    - flak8
