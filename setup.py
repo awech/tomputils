@@ -10,13 +10,12 @@ setup(
     description = ("A collection of supporting utilities."),
     license = "CC0",
     keywords = "mattermost",
-    url = "http://packages.python.org/tomputils",
     packages = find_packages(),
     long_description=open(join(dirname(__file__), 'README')).read(),
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Topic :: Scientific/Engineering :: Visualization",
-        "License :: OSI Approved :: BSD License",
+        "Topic :: Software Development :: Libraries",
+        "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
     ],
     install_requires = [
         'requests',
