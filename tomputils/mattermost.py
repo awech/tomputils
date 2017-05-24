@@ -4,8 +4,8 @@ Module for interacting with mattermost.
 """
 import os
 import json
-import requests
 import logging
+import requests
 
 
 class Mattermost(object):
@@ -28,78 +28,73 @@ class Mattermost(object):
         self.logger.debug("Mattermost user pass: " + self.user_pass)
 
         # Login
-        self.matterMostSession = requests.Session()
-        self.matterMostSession.headers.update({"X-Requested-With": "XMLHttpRequest"})
+        self.session = requests.Session()
+        self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
 
         if 'SSL_CA' in os.environ:
             self.logger.debug("Using SSL key " + os.environ['SSL_CA'])
-            self.matterMostSession.verify = os.environ['SSL_CA']
+            self.session.verify = os.environ['SSL_CA']
 
         url = self.server_url + '/api/v3/users/login'
         login_data = json.dumps({'login_id': self.user_id, 'password': self.user_pass})
-        l = self.matterMostSession.post(url, data=login_data)
-        self.logger.debug(l)
+        response = self.session.post(url, data=login_data)
+        self.logger.debug(response)
         # self.mattermostUserId = l.json()["id"]
 
     def get_teams(self):
         """
         Get a list of teams on the server.
-        :return: 
+        :return: Known teams
         """
-        p = self.matterMostSession.get('%s/api/v3/teams/all' % self.server_url)
-        return(json.loads(p.content))
+        response = self.session.get('%s/api/v3/teams/all' % self.server_url)
+        return json.loads(response.content)
 
     def get_channels(self, team_id):
         """
         Get a list of available channels for a team
-        :param team_id: 
-        :return: 
+        :param team_id: Team Id to check
+        :return: Avaliable channels
         """
-        p = self.matterMostSession.get('%s/api/v3/teams/%s/channels/' % (self.server_url, team_id))
-        return(json.loads(p.content))
+        response = self.session.get('%s/api/v3/teams/%s/channels/' % (self.server_url, team_id))
+        return json.loads(response.content)
 
     def post(self, message):
         """
-        post a message to mattermost
-        :param message: 
-        :return: 
-        """
-        """
-        Post a message to Mattermost. Adapted from 
+        post a message to mattermost. Adapted from
         http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
-        :return: 
+        :param message: message to post
         """
         self.logger.debug("Posting message to mattermost: %s", message)
         post_data = json.dumps({
-                       'user_id': self.user_id,
-                       'channel_id': self.channel_id,
-                       'message': message,
-                       'create_at': 0,
-                   })
+            'user_id': self.user_id,
+            'channel_id': self.channel_id,
+            'message': message,
+            'create_at': 0,
+        })
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
-        r = self.matterMostSession.post(url, data=post_data)
+        response = self.session.post(url, data=post_data)
 
-        if r.status_code == 200:
-            self.logger.debug(r.content)
+        if response.status_code == 200:
+            self.logger.debug(response.content)
         else:
-            self.logger.warn(r.content)
+            self.logger.warn(response.content)
 
 
 def setup_logging(verbose):
     """
     Configure logging
-    :param verbose: 
-    :return: 
+    :param verbose: If true set logger to debug
+    :return: logger
     """
     logger = logging.getLogger('Mattermost')
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -113,15 +108,15 @@ def setup_logging(verbose):
 def format_timedelta(timedelta):
     """
     Format a timedelta into a human-friendly string
-    :param timedelta: 
-    :return: 
+    :param timedelta: timedelta to format
+    :return: Pretty string
     """
     seconds = timedelta.total_seconds()
 
-    days, r = divmod(seconds, 60 * 60 * 24)
-    hours, r = divmod(r, 60 * 60)
-    minutes, r = divmod(r, 60)
-    seconds = r
+    days, rmainder = divmod(seconds, 60 * 60 * 24)
+    hours, rmainder = divmod(rmainder, 60 * 60)
+    minutes, rmainder = divmod(rmainder, 60)
+    seconds = rmainder
 
     timestring = ''
     if days > 0:
@@ -141,9 +136,9 @@ def format_timedelta(timedelta):
 def format_span(start, end):
     """
     format a time span into a human-friendly string
-    :param start: 
-    :param end: 
-    :return: 
+    :param start: start datetime
+    :param end: end datetime
+    :return: Pretty string
     """
     time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')
     time_string += end.strftime('%H:%M:%S')
