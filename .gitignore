@@ -18,11 +18,9 @@ build/
 dist/
 distribute-*.egg
 distribute-*.tar.gz
-misc/docs/source/packages/autogen
-misc/docs/source/_static/css/
-misc/docs/source/_static/font.css
-misc/docs/source/_static/fonts/
-misc/docs/_build/
-misc/docker/logs/
+doc/source/packages/autogen
+doc/source/_static/css/
+doc/source/_static/font.css
+doc/source/_static/fonts/
+doc/_build/
 __pycache__
-debian

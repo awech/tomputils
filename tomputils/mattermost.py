@@ -1,6 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Module for interacting with mattermost.
+Interact with a Mattermost server.
+
+This modules ineracts with a `Mattermost <http://mattermost.com/>`_  server using Mattermost API V3.
+
+Example:
+::    
+    >>> import json
+    >>> import tomputils.mattermost as mm
+    >>> conn = mm.Mattermost()
+    >>> print(json.dumps(conn.get_teams(), indent=4))
+    {
+        "39ou1iab7pnomynpzeme869m4w": {
+            "allowed_domains": "", 
+            "display_name": "AVO", 
+            "name": "avo", 
+            "invite_id": "89hj448uktds9px9eei65qg55h", 
+            "delete_at": 0, 
+            "update_at": 1488239656296, 
+            "create_at": 1487379468267, 
+            "email": "scott.crass@alaska.gov", 
+            "company_name": "", 
+            "allow_open_invite": true, 
+            "type": "O", 
+            "id": "39ou1iab7pnomynpzeme869m4w", 
+            "description": ""
+        }
+    }
+    >>> 
+
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
