@@ -3,17 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to tomputils's documentation!
+tomputils
 =====================================
+
+A collection of utility modues I find useful.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: tomputils.mattermost
-   :members:
-   :undoc-members:
-
+   mattermost
 
 Indices and tables
 ==================

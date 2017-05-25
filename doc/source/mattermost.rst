@@ -1,0 +1,13 @@
+tomputils.mattermost
+=====================================
+
+.. automodule:: tomputils.mattermost
+   :members:
+   :undoc-members:
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
