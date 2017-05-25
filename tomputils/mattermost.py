@@ -2,7 +2,15 @@
 """
 Interact with a Mattermost server.
 
-This modules ineracts with a `Mattermost <http://mattermost.com/>`_  server using Mattermost API V3.
+This modules ineracts with a `Mattermost <http://mattermost.com/>`_  
+server using Mattermost API V3. It will look to the environment for 
+configuration, expecting to see the following environment variables:
+
+    * MATTERMOST_SERVER_URL=https://chat.example.com
+    * MATTERMOST_TEAM_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+    * MATTERMOST_USER_PASS=mat_pass
+    * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+    * MATTERMOST_USER_ID=mat_user
 
 Example:
 ::    
