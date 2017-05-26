@@ -184,7 +184,7 @@ class Connection:
         if filename:
             filename = filename.filename
         else:
-            filename = 
+            filename = self.uri.split('/')[-1]
         if not filename: filename = os.path.basename(self.handler.parse.path)
         return filename
 
@@ -244,7 +244,6 @@ class Handler:
         self.uri = uri
         self.parse = urlparse.urlparse(self.uri)
         self.dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-
 
         # Gather fileinfo from Request
         self.gather()
@@ -500,7 +499,7 @@ class Handler:
                 file.close()
 
                 # Delete part file
-                os.remove(f)
+                Wos.remove(f)
 
 
         # Close output file
