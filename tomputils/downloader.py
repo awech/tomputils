@@ -47,38 +47,38 @@ class Connection:
         self.total_downloaded = 0
         self.id = None
         self.name = None
-        self.piece_size = None
-        self.piece = None
+        self.segment_size = None
+        self.segment = None
         self.link_downloaded = None
-        self.piece_downloaded = None
+        self.segment_downloaded = None
         self.is_stop = None
         self.retried = None
         self.result = None
 
-    def start(self, result, piece):
-        if isinstance(piece, list):
-            self.id = piece[0]
-            self.name = 'Piece % 02d' % piece[0]
-            self.curl.setopt(pycurl.RANGE, '% d - %d' % (piece[1], piece[2]))
-            self.piece_size = piece[2] - piece[1] + 1
-            self.piece = piece
+    def start(self, result, segment):
+        if isinstance(segment, list):
+            self.id = segment[0]
+            self.name = 'Segment % 02d' % segment[0]
+            self.curl.setopt(pycurl.RANGE, '% d - %d' % (segment[1], segment[2]))
+            self.segment_size = segment[2] - segment[1] + 1
+            self.segment = segment
         else:
             self.id = 0
             self.name = 'TASK'
-            self.piece_size = piece
-            self.piece = None
+            self.segment_size = segment
+            self.segment = None
 
         self.link_downloaded = 0
-        self.piece_downloaded = 0
+        self.segment_downloaded = 0
         self.retried = 0
         self.is_stop = False
         self.result = result
-        self.piece = piece
+        self.segment = segment
 
     def retry(self):
-        self.curl.setopt(pycurl.RANGE, '% d - %d' % (self.piece[1] +
-                                                     self.piece_downloaded,
-                                                     self.piece[2]))
+        self.curl.setopt(pycurl.RANGE, '% d - %d' % (self.segment[1] +
+                                                     self.segment_downloaded,
+                                                     self.segment[2]))
         if self.link_downloaded:
             self.link_downloaded = 0
         else:
@@ -88,13 +88,13 @@ class Connection:
         self.curl.close()
 
     def write_cb(self, buf):
-        if self.piece:
-            self.result.seek(self.piece[1] + self.piece_downloaded, 0)
+        if self.segment:
+            self.result.seek(self.segment[1] + self.segment_downloaded, 0)
             self.result.write(buf)
             self.result.flush()
             size = len(buf)
             self.link_downloaded += size
-            self.piece_downloaded += size
+            self.segment_downloaded += size
             self.total_downloaded += size
         if self.is_stop:
             return -1
@@ -129,8 +129,8 @@ def get_segments(url_info):
         num = MAX_CON_COUNT
         while num * MIN_SEG_SIZE > file_size and num > 1:
             num -= 1
-        piece_size = int(file_size / num + 0.5)
-        segments = [[i, i * piece_size, (i + 1) * piece_size - 1]
+        segment_size = int(file_size / num + 0.5)
+        segments = [[i, i * segment_size, (i + 1) * segment_size - 1]
                     for i in range(num)]
         segments[-1][2] = file_size - 1
     else:
@@ -274,18 +274,18 @@ class Downloader:
         if c.errno == pycurl.E_OK:
             c.code = curl.getinfo(pycurl.RESPONSE_CODE)
             if c.code in STATUS_OK:
-                assert c.piece_downloaded == c.piece_size
+                assert c.segment_downloaded == c.segment_size
                 print('%s: Download successed' % c.name)
                 print('%s:Download % s out of % d' % (c.name,
-                                                      c.piece_downloaded,
-                                                      c.piece_size))
+                                                      c.segment_downloaded,
+                                                      c.segment_size))
                 self.free_connections.append(c)
             elif c.code in STATUS_ERROR:
                 print('%s:Error < %d >! Connection will be closed' % (c.name,
                                                                       c.code))
                 self.connections.remove(c)
                 c.close()
-                self.segments.append(c.piece)
+                self.segments.append(c.segment)
             else:
                 raise Exception(
                     '% s: Unhandled http status code % d' % (c.name, c.code))
