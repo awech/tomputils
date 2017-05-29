@@ -34,7 +34,7 @@ MAXRETRYCOUNT = 5
 
 
 class Connection:
-    def __init__(self, url):
+    def __init__(self, url, can_segment):
         self.curl = pycurl.Curl()
         self.curl.setopt(pycurl.FOLLOWLOCATION, 1)
         self.curl.setopt(pycurl.MAXREDIRS, 5)
@@ -52,9 +52,10 @@ class Connection:
         self.link_downloaded = None
         self.segment_downloaded = None
         self.retried = None
-        self.result = None
+        self.out_file = None
+        self.can_segment = can_segment
 
-    def start(self, result, segment):
+    def prepare(self, out_file, segment):
         if isinstance(segment, list):
             self.id = segment[0]
             self.name = 'Segment % 02d' % segment[0]
@@ -70,10 +71,10 @@ class Connection:
         self.link_downloaded = 0
         self.segment_downloaded = 0
         self.retried = 0
-        self.result = result
+        self.out_file = out_file
         self.segment = segment
 
-    def retry(self):
+    def prepare_retry(self):
         self.curl.setopt(pycurl.RANGE, '%d-%d' % (self.segment[1] +
                                                   self.segment_downloaded,
                                                   self.segment[2]))
@@ -87,9 +88,9 @@ class Connection:
 
     def write_cb(self, buf):
         if self.segment:
-            self.result.seek(self.segment[1] + self.segment_downloaded, 0)
-            self.result.write(buf)
-            self.result.flush()
+            self.out_file.seek(self.segment[1] + self.segment_downloaded, 0)
+            self.out_file.write(buf)
+            self.out_file.flush()
             size = len(buf)
             self.link_downloaded += size
             self.segment_downloaded += size
@@ -121,13 +122,16 @@ def fetch(req_url):
     afile.truncate(size)
     afile.close()
 
-    result = file(filename, str('r+b'))
+    out_file = file(filename, str('r+b'))
     connections = []
     for i in range(len(segments)):
-        c = Connection(url)
+        c = Connection(url, can_segment)
         connections.append(c)
-    free_connections = connections[:]
-    working_connections = []
+
+    con = {}
+    con['connections'] = connections
+    con['free'] = connections[:]
+    con['working'] = []
 
     ok = True
     start_time = time.time()
@@ -136,11 +140,11 @@ def fetch(req_url):
 
     try:
         while 1:
-            while segments and free_connections:
+            while segments and con['free']:
                 p = segments.pop(0)
-                c = free_connections.pop(0)
-                c.start(result, p)
-                working_connections.append(c)
+                c = con['free'].pop(0)
+                c.prepare(out_file, p)
+                con['working'].append(c)
                 mcurl.add_handle(c.curl)
                 print('%s:Start downloading' % c.name)
 
@@ -152,26 +156,22 @@ def fetch(req_url):
             while 1:
                 num_q, ok_list, err_list = mcurl.info_read()
                 for curl in ok_list:
-                    # print("Success:", curl.tmp_file, curl.url,
-                    #       curl.getinfo(pycurl.EFFECTIVE_URL))
                     curl.errno = pycurl.E_OK
-                    curl.errmsg = ''
-                    process_curl(mcurl, curl, connections, working_connections,
-                                 free_connections, segments, can_segment)
+                    curl.errmsg = None
+                    process_result(mcurl, curl, con, segments)
                 for curl, errno, errmsg in err_list:
                     curl.errno = errno
                     curl.errmsg = errmsg
-                    process_curl(mcurl, curl, connections, working_connections,
-                                 free_connections, segments, can_segment)
+                    process_result(mcurl, curl, con, segments)
                 if num_q == 0:
                     break
 
             elapsed = time.time() - start_time
-            downloaded = sum([con.total_downloaded for con in
+            downloaded = sum([connection.total_downloaded for connection in
                               connections])
             show_progress(size, downloaded, elapsed)
 
-            if not working_connections:
+            if not con['working']:
                 break
 
             mcurl.select(1.0)
@@ -192,13 +192,12 @@ def fetch(req_url):
     # logging.info(msg)
 
 
-def process_curl(mcurl, curl, connections, working_connections,
-                 free_connections, segments, can_segment):
+def process_result(mcurl, curl, con, segments):
     mcurl.remove_handle(curl)
     c = curl.connection
     c.errno = curl.errno
     c.errmsg = curl.errmsg
-    working_connections.remove(c)
+    con['working'].remove(c)
     if c.errno == pycurl.E_OK:
         c.code = curl.getinfo(pycurl.RESPONSE_CODE)
         if c.code in STATUS_OK:
@@ -207,21 +206,25 @@ def process_curl(mcurl, curl, connections, working_connections,
             print('%s:Download %s out of %d' % (c.name,
                                                 c.segment_downloaded,
                                                 c.segment_size))
-            free_connections.append(c)
+            con['free'].append(c)
         elif c.code in STATUS_ERROR:
             print('%s:Error < %d >! Connection will be closed' % (c.name,
                                                                   c.code))
-            connections.remove(c)
-            c.close()
             segments.append(c.segment)
+            new_c = Connection(c.getopt(pycurl.URL))
+            con['connections'].append(new_c)
+            con['free'].append(new_c)
+
+            c.close()
+            con['connections'].remove(c)
         else:
             raise Exception(
                 '%s: Unhandled http status code %d' % (c.name, c.code))
     else:
         print('%s:Download failed < %s >' % (c.name, c.errmsg))
-        if can_segment and c.retried < MAXRETRYCOUNT:
-            c.retry()
-            working_connections.append(c)
+        if c.can_segment and c.retried < MAXRETRYCOUNT:
+            c.prepare_retry()
+            con['working'].append(c)
             mcurl.add_handle(c.curl)
             print('%s:Try again' % c.name)
         else:
