@@ -77,8 +77,8 @@ class Connection:
 
     def retry(self):
         self.curl.setopt(pycurl.RANGE, '%d-%d' % (self.segment[1] +
-                                                     self.segment_downloaded,
-                                                     self.segment[2]))
+                                                  self.segment_downloaded,
+                                                  self.segment[2]))
         if self.link_downloaded:
             self.link_downloaded = 0
         else:
@@ -121,8 +121,7 @@ class Downloader:
         size = int(response(pycurl.CONTENT_LENGTH_DOWNLOAD))
         can_segment = headers.getvalue().find('Accept-Ranges') != -1
 
-        print('Downloading %s, (%d bytes)' % (filename,
-                                           size))
+        print('Downloading %s, (%d bytes)' % (filename, size))
         segments = get_segments(size, can_segment)
 
         # allocate file space
@@ -165,11 +164,17 @@ class Downloader:
                         #       curl.getinfo(pycurl.EFFECTIVE_URL))
                         curl.errno = pycurl.E_OK
                         curl.errmsg = ''
-                        self.process_curl(mcurl, curl, connections, working_connections, free_connections, segments, can_segment)
+                        self.process_curl(mcurl, curl, connections,
+                                          working_connections,
+                                          free_connections, segments,
+                                          can_segment)
                     for curl, errno, errmsg in err_list:
                         curl.errno = errno
                         curl.errmsg = errmsg
-                        self.process_curl(mcurl, curl, connections, working_connections, free_connections, segments, can_segment)
+                        self.process_curl(mcurl, curl, connections,
+                                          working_connections,
+                                          free_connections, segments,
+                                          can_segment)
                     if num_q == 0:
                         break
 
@@ -198,7 +203,8 @@ class Downloader:
         print(msg)
         # logging.info(msg)
 
-    def process_curl(self, mcurl, curl, connections, working_connections, free_connections, segments, can_segment):
+    def process_curl(self, mcurl, curl, connections, working_connections,
+                     free_connections, segments, can_segment):
         mcurl.remove_handle(curl)
         c = curl.connection
         c.errno = curl.errno
@@ -210,8 +216,8 @@ class Downloader:
                 assert c.segment_downloaded == c.segment_size
                 print('%s: Download successed' % c.name)
                 print('%s:Download %s out of %d' % (c.name,
-                                                      c.segment_downloaded,
-                                                      c.segment_size))
+                                                    c.segment_downloaded,
+                                                    c.segment_size))
                 free_connections.append(c)
             elif c.code in STATUS_ERROR:
                 print('%s:Error < %d >! Connection will be closed' % (c.name,
@@ -231,6 +237,7 @@ class Downloader:
                 print('%s:Try again' % c.name)
             else:
                 raise Exception("%s" % c.errmsg)
+
 
 def req_headers(url, headers):
     curl = pycurl.Curl()
