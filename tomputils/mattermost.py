@@ -223,9 +223,10 @@ def format_timedelta(timedelta):
     if minutes > 0:
         timestring += '%dm ' % minutes
 
-    timestring += '%ds' % seconds
+    if seconds > 0:
+        timestring += '%ds' % seconds
 
-    return timestring
+    return timestring.strip()
 
 
 def format_span(start, end):
