@@ -113,7 +113,7 @@ def fetch(req_url, output=None):
     size = int(response(pycurl.CONTENT_LENGTH_DOWNLOAD))
     can_segment = headers.getvalue().find('Accept-Ranges') != -1
 
-    if output in None:
+    if output is None:
         output = os.path.split(url)[1]
 
     print('Downloading %s, (%d bytes)' % (output, size))
