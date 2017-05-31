@@ -25,7 +25,7 @@ if os.name == 'posix':
     signal.signal(signal.SIGPIPE, signal.SIG_IGN)
     del signal
 
-VALIDPROTOCOL = ('http', 'ftp')
+VALIDPROTOCOL = ('http')
 STATUS_OK = (200, 203, 206)
 STATUS_ERROR = range(400, 600)
 MIN_SEG_SIZE = 16 * 1024
@@ -33,8 +33,8 @@ MAX_CON = 4
 MAX_RETRY = 5
 
 
-class Connection:
-    def __init__(self, req_url, can_segment):
+class Connection(object):
+    def __init__(self, req_url):
         self.curl = pycurl.Curl()
         self.curl.setopt(pycurl.FOLLOWLOCATION, 1)
         self.curl.setopt(pycurl.MAXREDIRS, 5)
@@ -53,7 +53,6 @@ class Connection:
         self.segment_downloaded = None
         self.retried = None
         self.out_file = None
-        self.can_segment = can_segment
 
     def prepare(self, out_file, segment):
         if isinstance(segment, list):
@@ -111,6 +110,7 @@ class Downloader(object):
         :param output: Path for downloaded file
         :return: getinfo reference
         """
+
         headers = StringIO()
         response = req_headers(req_url, headers)
         if response(pycurl.RESPONSE_CODE) not in STATUS_OK:
@@ -135,7 +135,7 @@ class Downloader(object):
         out_file = open(output, str('r+b'))
         connections = []
         for i in range(len(segments)):
-            c = Connection(eurl, can_segment)
+            c = Connection(eurl)
             connections.append(c)
 
         con = {
@@ -221,7 +221,7 @@ class Downloader(object):
                 print('%s:Error < %d >! Connection will be closed' % (c.name,
                                                                       c.code))
                 segments.append(c.segment)
-                new_c = Connection(c.getopt(pycurl.URL), c.can_segment)
+                new_c = Connection(c.getopt(pycurl.URL))
                 con['connections'].append(new_c)
                 con['free'].append(new_c)
 
@@ -256,11 +256,6 @@ class Downloader(object):
         return segments
 
 
-def fetch(req_url):
-    dl = Downloader()
-    dl.fetch(req_url)
-
-
 def req_headers(req_url, headers):
     curl = pycurl.Curl()
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
@@ -273,14 +268,11 @@ def req_headers(req_url, headers):
     curl.setopt(pycurl.HEADERFUNCTION, headers.write)
     curl.setopt(pycurl.URL, req_url)
 
-    try:
-        curl.perform()
-        if curl.errstr():
-            return None
-        else:
-            return curl.getinfo
-    except:
+    curl.perform()
+    if curl.errstr():
         return None
+    else:
+        return curl.getinfo
 
 
 def show_progress(size, downloaded, elapsed):
@@ -300,6 +292,11 @@ def show_progress(size, downloaded, elapsed):
     sys.stdout.write(info + space + prog)
     sys.stdout.flush()
     sys.stdout.write('\b' * 82)
+
+
+def fetch(req_url):
+    dl = Downloader()
+    dl.fetch(req_url)
 
 
 if __name__ == '__main__':
