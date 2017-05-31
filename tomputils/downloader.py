@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 """
-Download a single file, using concurrent segments if supported by the remote
-server.
+Download a single file. Download file segments concurrently if supported by 
+the remote server.
 
 Inspired by:
 https://github.com/dragondjf/QMusic/blob/master/test/pycurldownload.py
@@ -97,7 +97,7 @@ class Connection:
             self.total_downloaded += size
 
 
-def fetch(req_url):
+def fetch(req_url, output=None):
     """
     TODO: test can_segment == false
     :param req_url: Requested URL
@@ -106,23 +106,25 @@ def fetch(req_url):
     headers = StringIO()
     response = req_headers(req_url, headers)
     if response(pycurl.RESPONSE_CODE) not in STATUS_OK:
-        print("Cannot retrieve headers for %s" % req_url)
+        print("Cannot retrieve headers for %s. Aborting." % req_url)
         return
 
     url = response(pycurl.EFFECTIVE_URL)
-    filename = os.path.split(url)[1]
     size = int(response(pycurl.CONTENT_LENGTH_DOWNLOAD))
     can_segment = headers.getvalue().find('Accept-Ranges') != -1
 
-    print('Downloading %s, (%d bytes)' % (filename, size))
+    if output in None:
+        output = os.path.split(url)[1]
+
+    print('Downloading %s, (%d bytes)' % (output, size))
     segments = get_segments(size, can_segment)
 
     # allocate file space
-    afile = file(filename, 'wb')
+    afile = file(output, 'wb')
     afile.truncate(size)
     afile.close()
 
-    out_file = file(filename, str('r+b'))
+    out_file = file(output, str('r+b'))
     connections = []
     for i in range(len(segments)):
         c = Connection(url, can_segment)
@@ -290,8 +292,6 @@ def show_progress(size, downloaded, elapsed):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        # downloader = Downloader()
-        # downloader.fetch(sys.argv[1])
         fetch(sys.argv[1])
     else:
         print("I need a URL")

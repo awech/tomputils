@@ -12,8 +12,26 @@ configuration, expecting to see the following environment variables:
     * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
     * MATTERMOST_USER_ID=mat_user
 
-Example:
-::
+"""
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+from future.builtins import *  # NOQA
+
+import os
+import json
+import logging
+import requests
+
+
+class Mattermost(object):
+    """
+    Interact with a mattermost server.
+
+    :type verbose: boolean, optional
+    :param verbose: If true log lots of deaiils.
+    
+    .. rubric:: Basic Usage
+    
     >>> import json
     >>> import tomputils.mattermost as mm
     >>> conn = mm.Mattermost()
@@ -37,20 +55,6 @@ Example:
     }
     >>>
 
-"""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-from future.builtins import *  # NOQA
-
-import os
-import json
-import logging
-import requests
-
-
-class Mattermost(object):
-    """
-    Interact with a mattermost server.
     """
 
     def __init__(self, verbose=False):
@@ -85,7 +89,32 @@ class Mattermost(object):
     def get_teams(self):
         """
         Get a list of teams on the server.
+        
         :return: Known teams
+        
+            .. rubric:: Basic Usage
+    
+        >>> import json
+        >>> import tomputils.mattermost as mm
+        >>> conn = mm.Mattermost()
+        >>> print(json.dumps(conn.get_teams(), indent=4))
+        {
+            "39ou1iab7pnomynpzeme869m4w": {
+                "allowed_domains": "",
+                "display_name": "AVO",
+                "name": "avo",
+                "invite_id": "89hj448uktds9px9eei65qg55h",
+                "delete_at": 0,
+                "update_at": 1488239656296,
+                "create_at": 1487379468267,
+                "email": "scott.crass@alaska.gov",
+                "company_name": "",
+                "allow_open_invite": true,
+                "type": "O",
+                "id": "39ou1iab7pnomynpzeme869m4w",
+                "description": ""
+            }
+        }
         """
         response = self.session.get('%s/api/v3/teams/all' % self.server_url)
         return json.loads(response.content)
@@ -95,6 +124,30 @@ class Mattermost(object):
         Get a list of available channels for a team
         :param team_id: Team Id to check
         :return: Avaliable channels
+
+        .. rubric:: Basic Usage    
+
+        >>> import json
+        >>> import tomputils.mattermost as mm
+        >>> conn = mm.Mattermost()
+        >>> print(json.dumps(conn.get_CHANNELS(), indent=4))
+        {
+            "39ou1iab7pnomynpzeme869m4w": {
+                "allowed_domains": "",
+                "display_name": "AVO",
+                "name": "avo",
+                "invite_id": "89hj448uktds9px9eei65qg55h",
+                "delete_at": 0,
+                "update_at": 1488239656296,
+                "create_at": 1487379468267,
+                "email": "scott.crass@alaska.gov",
+                "company_name": "",
+                "allow_open_invite": true,
+                "type": "O",
+                "id": "39ou1iab7pnomynpzeme869m4w",
+                "description": ""
+            }
+        }
         """
         req = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
         response = self.session.get(req)
