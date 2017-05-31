@@ -13,6 +13,7 @@ A collection of utility modues I find useful.
    :caption: Contents:
 
    mattermost
+   downloader
 
 Indices and tables
 ==================
