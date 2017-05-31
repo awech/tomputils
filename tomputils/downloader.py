@@ -120,11 +120,11 @@ def fetch(req_url, output=None):
     segments = get_segments(size, can_segment)
 
     # allocate file space
-    afile = file(output, 'wb')
+    afile = open(output, 'wb')
     afile.truncate(size)
     afile.close()
 
-    out_file = file(output, str('r+b'))
+    out_file = open(output, str('r+b'))
     connections = []
     for i in range(len(segments)):
         c = Connection(url, can_segment)
