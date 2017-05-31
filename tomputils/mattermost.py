@@ -29,9 +29,9 @@ class Mattermost(object):
 
     :type verbose: boolean, optional
     :param verbose: If true log lots of deaiils.
-    
+
     .. rubric:: Basic Usage
-    
+
     >>> import json
     >>> import tomputils.mattermost as mm
     >>> conn = mm.Mattermost()
@@ -89,11 +89,11 @@ class Mattermost(object):
     def get_teams(self):
         """
         Get a list of teams on the server.
-        
+
         :return: Known teams
-        
+
             .. rubric:: Basic Usage
-    
+
         >>> import json
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
@@ -125,7 +125,7 @@ class Mattermost(object):
         :param team_id: Team Id to check
         :return: Avaliable channels
 
-        .. rubric:: Basic Usage    
+        .. rubric:: Basic Usage
 
         >>> import json
         >>> import tomputils.mattermost as mm

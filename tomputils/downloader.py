@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 """
-Download a single file. Download file segments concurrently if supported by 
+Download a single file. Download file segments concurrently if supported by
 the remote server.
 
 Inspired by:
