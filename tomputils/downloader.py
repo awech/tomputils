@@ -17,7 +17,7 @@ import time
 import traceback
 
 import pycurl
-from cStringIO import StringIO
+from six import StringIO
 
 if os.name == 'posix':
     import signal
@@ -25,7 +25,6 @@ if os.name == 'posix':
     signal.signal(signal.SIGPIPE, signal.SIG_IGN)
     del signal
 
-VALIDPROTOCOL = ('http')
 STATUS_OK = (200, 203, 206)
 STATUS_ERROR = range(400, 600)
 MIN_SEG_SIZE = 16 * 1024
