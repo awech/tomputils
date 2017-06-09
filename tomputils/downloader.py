@@ -194,7 +194,7 @@ class Downloader(object):
                 mcurl.close()
 
         if ok:
-            msg = 'Download Successed! Total Elapsed %ds' % elapsed
+            msg = 'Download Succeeded! Total Elapsed %ds' % elapsed
         else:
             print(traceback.format_exc())
             msg = 'Download Failed!'
