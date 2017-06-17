@@ -16,11 +16,12 @@ variables:
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from future.builtins import *  # NOQA
-
 import os
 import json
 import logging
+
+from future.builtins import *  # NOQA
+
 import requests
 
 
@@ -30,8 +31,6 @@ LOG = logging.getLogger(__name__)
 class Mattermost(object):
     """
     Interact with a mattermost server.
-
-    :type verbose: boolean, optional
 
     .. rubric:: Basic Usage
 
@@ -66,10 +65,6 @@ class Mattermost(object):
         self.user_pass = os.environ['MATTERMOST_USER_PASS']
         LOG.debug("Mattermost user pass: %s", self.user_pass)
 
-        if 'SSL_CA' in os.environ:
-            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
-            self.session.verify = os.environ['SSL_CA']
-
         if server_url is None:
             self.server_url = os.environ['MATTERMOST_SERVER_URL']
         else:
@@ -78,6 +73,10 @@ class Mattermost(object):
 
         self.session = requests.Session()
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
+        if 'SSL_CA' in os.environ:
+            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
+            self.session.verify = os.environ['SSL_CA']
+
         self.login()
 
         if team_name is None:
@@ -92,15 +91,16 @@ class Mattermost(object):
             self.channel_id = self.get_channel_id(self.team_id, channel_name)
         LOG.debug("Mattermost channelid: %s", self.channel_id)
 
-
     def login(self):
+        """
+        Authenticate with the server.
+        """
         url = self.server_url + '/api/v3/users/login'
         login_data = json.dumps({'login_id': self.user_id,
                                  'password': self.user_pass})
         LOG.debug("Sending: %s", login_data)
         response = self.session.post(url, data=login_data)
         LOG.debug("Received: %s", response.json())
-
 
     def get_teams(self):
         """
@@ -144,8 +144,8 @@ class Mattermost(object):
         """
 
         teams = self.get_teams()
-        for id in teams.keys():
-            team = teams[id]
+        for tid in teams.keys():
+            team = teams[tid]
             if team['name'] == team_name:
                 return team['id']
 
@@ -162,7 +162,7 @@ class Mattermost(object):
         >>> import json
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
-        >>> print(json.dumps(conn.get_CHANNELS(), indent=4))
+        >>> print(json.dumps(conn.get_channels(), indent=4))
         {
             "39ou1iab7pnomynpzeme869m4w": {
                 "allowed_domains": "",
@@ -186,6 +186,13 @@ class Mattermost(object):
         return json.loads(response.content)
 
     def get_channel_id(self, team_id, channel_name):
+        """
+        Locate channel by name.
+
+        :param team_id:
+        :param channel_name:
+        :return: channel id
+        """
         channels = self.get_channels(team_id)
         for channel in channels:
             if channel['name'] == channel_name:
@@ -196,7 +203,7 @@ class Mattermost(object):
     def upload(self, file_path):
         """
         upload a file
-        :param filename:
+        :param file_path:
         :return:
         """
         LOG.debug(("Uploading file to mattermost: %s", file_path))
@@ -207,9 +214,9 @@ class Mattermost(object):
         url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
                                                    self.team_id)
         response = self.session.post(url, data=post_data, files=file_data)
-        #f = open("out.txt", "wb")
-        #f.write(response.request.body)
-        #f.close()
+        # f = open("out.txt", "wb")
+        # f.write(response.request.body)
+        # f.close()
         LOG.debug("Received: %s - %s", response.status_code, response.text)
 
         if response.status_code != 200:
@@ -228,7 +235,7 @@ class Mattermost(object):
                 msg = "File storage is disabled"
             else:
                 msg = response
-            raise RuntimeError("Server unhappy with request, reports: %s" \
+            raise RuntimeError("Server unhappy with request, reports: %s"
                                % msg)
 
         file_id = response.json()["file_infos"][0]["id"]
@@ -239,7 +246,7 @@ class Mattermost(object):
         post a message to mattermost. Adapted from
         http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
         :param message: message to post
-        :param file: Path of to attach
+        :param file_path: Path of to attach
         :return: post id
         :
         """
@@ -254,14 +261,14 @@ class Mattermost(object):
         if file_path is not None:
             LOG.debug("attaching file: %s", file)
             file_id = self.upload(file_path)
-            post_data['file_ids'] = [file_id,]
+            post_data['file_ids'] = [file_id, ]
 
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
         response = self.session.post(url, data=json.dumps(post_data))
-        #f = open("out.txt", "wb")
-        #f.write(response.request.body)
-        #f.close()
+        # f = open("out.txt", "wb")
+        # f.write(response.request.body)
+        # f.close()
 
         if response.status_code == 200:
             LOG.debug(response.content)
@@ -289,7 +296,6 @@ class Mattermost(object):
     def get_posts(self, offset=0, limit=10):
         """
         get messages from mattermost.
-        :param post_id: message to retreive
         """
         LOG.debug("Getting messages from mattermost")
         url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
@@ -316,6 +322,7 @@ class Mattermost(object):
             raise RuntimeError("Server unhappy. (%s)", response)
 
         return response.content
+
 
 def format_timedelta(timedelta):
     """
@@ -364,14 +371,14 @@ if __name__ == '__main__':
 
     conn = Mattermost(server_url="https://chat.avo.alaska.edu",
                       team_name='avo', channel_name='rs-processing-test')
-    post_id = conn.post("### Here's an image",
-              file_path="/Users/tomp/pytroll/satpy/ompstest.png")
+    pid = conn.post("### Here's an image",
+                    file_path="/Users/tomp/pytroll/satpy/ompstest.png")
 
-    print("GOT POST %s" % post_id)
-    #conn.post("test2")
-    #conn.post("test", file_path="/Users/tomp/pytroll/satpy/ompstest.png")
-    #conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
-    #print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")), indent=4))
-    #print(json.dumps(conn.get_channels(conn.get_team_id('avo')), indent=4))
-    #print("GOT TEAM %s" % conn.get_team_id('avo'))
-    #print("GOT CHANNEL %s" % conn.get_channel_id(conn.get_team_id('avo'), "rs-processing-test"))
+    print("GOT POST %s" % pid)
+    # conn.post("test2")
+    # conn.post("test", file_path="/Users/tomp/pytroll/satpy/ompstest.png")
+    # conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
+    # print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")), indent=4))
+    # print(json.dumps(conn.get_channels(conn.get_team_id('avo')), indent=4))
+    # print("GOT TEAM %s" % conn.get_team_id('avo'))
+    # print("GOT CHANNEL %s" % conn.get_channel_id(conn.get_team_id('avo'), "rs-processing-test"))
