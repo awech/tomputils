@@ -14,4 +14,4 @@ A collection of supporting modules.
     CC0 1.0 Universal
     http://creativecommons.org/publicdomain/zero/1.0/
 """
-__version__ = "1.0.7"
+__version__ = "1.0.8"

@@ -2,15 +2,16 @@
 """
 Interact with a Mattermost server.
 
-This modules ineracts with a `Mattermost <http://mattermost.com/>`_
-server using Mattermost API V3. It will look to the environment for
-configuration, expecting to see the following environment variables:
+This modules ineracts with a `Mattermost <http://mattermost.com/>`_ server
+using `Mattermost API V3 <https://api.mattermost.com/>`_. It will look to the
+environment for configuration, expecting to see the following environment
+variables:
 
     * MATTERMOST_SERVER_URL=https://chat.example.com
-    * MATTERMOST_TEAM_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
-    * MATTERMOST_USER_PASS=mat_pass
-    * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
     * MATTERMOST_USER_ID=mat_user
+    * MATTERMOST_USER_PASS=mat_pass
+    * MATTERMOST_TEAM_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+    * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 
 """
 from __future__ import (absolute_import, division, print_function,
@@ -23,12 +24,14 @@ import logging
 import requests
 
 
+LOG = logging.getLogger(__name__)
+
+
 class Mattermost(object):
     """
     Interact with a mattermost server.
 
     :type verbose: boolean, optional
-    :param verbose: If true log lots of deaiils.
 
     .. rubric:: Basic Usage
 
@@ -57,34 +60,32 @@ class Mattermost(object):
 
     """
 
-    def __init__(self, verbose=False):
-        self.logger = setup_logging(verbose)
-
+    def __init__(self):
         self.server_url = os.environ['MATTERMOST_SERVER_URL']
-        self.logger.debug("Mattermost server URL: " + self.server_url)
+        LOG.debug("Mattermost server URL: %s", self.server_url)
         self.team_id = os.environ['MATTERMOST_TEAM_ID']
-        self.logger.debug("Mattermost team id: " + self.team_id)
+        LOG.debug("Mattermost team id: %s", self.team_id)
         self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
-        self.logger.debug("Mattermost channelid: " + self.channel_id)
+        LOG.debug("Mattermost channelid: %s", self.channel_id)
         self.user_id = os.environ['MATTERMOST_USER_ID']
-        self.logger.debug("Mattermost user email: " + self.user_id)
+        LOG.debug("Mattermost user email: %s", self.user_id)
         self.user_pass = os.environ['MATTERMOST_USER_PASS']
-        self.logger.debug("Mattermost user pass: " + self.user_pass)
+        LOG.debug("Mattermost user pass: %s", self.user_pass)
 
         # Login
         self.session = requests.Session()
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
 
         if 'SSL_CA' in os.environ:
-            self.logger.debug("Using SSL key " + os.environ['SSL_CA'])
+            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
             self.session.verify = os.environ['SSL_CA']
 
         url = self.server_url + '/api/v3/users/login'
         login_data = json.dumps({'login_id': self.user_id,
                                  'password': self.user_pass})
+        LOG.debug("Sending: %s", login_data)
         response = self.session.post(url, data=login_data)
-        self.logger.debug(response)
-        # self.mattermostUserId = l.json()["id"]
+        LOG.debug("Received: %s", response.json())
 
     def get_teams(self):
         """
@@ -153,52 +154,118 @@ class Mattermost(object):
         response = self.session.get(req)
         return json.loads(response.content)
 
-    def post(self, message):
+    def post(self, message, file=None):
         """
         post a message to mattermost. Adapted from
         http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
         :param message: message to post
+        :param file: Path of to attach
         """
-        self.logger.debug("Posting message to mattermost: %s", message)
-        post_data = json.dumps({
+        LOG.debug("Posting message to mattermost: %s", message)
+        if file is not None:
+            LOG.debug("attaching file: %s", file)
+            filename = os.path.basename(file)
+            post_data = {'channel_id': self.channel_id,
+                         'client_ids': filename}
+            file_data = {'files': (filename, open(file,'rb'))}
+            url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
+                                                       self.team_id)
+            response = self.session.post(url, data=post_data, files=file_data)
+            f = open("out.txt", "wb")
+            f.write(response.request.body)
+            f.close()
+            LOG.debug("Received: %s - %s", response.status_code, response.text)
+
+            if response.status_code != 200:
+                if response.status_code == 400:
+                    msg = "Type of the uploaded file doesn't match its file " \
+                          " extension or uploaded file is an image that " \
+                          "exceeds the maximum dimensions"
+                elif response.status_code == 401:
+                    msg = "User is not logged in"
+                elif response.status_code == 403:
+                    msg = "User does not have permission to upload file to " \
+                          "the provided team/channel"
+                elif response.status_code == 413:
+                    msg = "Uploaded file is too large"
+                elif response.status_code == 500:
+                    msg = "File storage is disabled"
+                else:
+                    msg = response
+                raise RuntimeError("Server unhappy with request, reports: %s" \
+                                   % msg)
+            else:
+                file_id = response.json()["file_infos"][0]["id"]
+        else:
+            file_id = None
+
+        post_data = {
             'user_id': self.user_id,
             'channel_id': self.channel_id,
             'message': message,
+            'file_ids': [file_id,],
             'create_at': 0,
-        })
+        }
+
+        if file_id is not None:
+            post_data['filenames'] = [file_id]
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
-        response = self.session.post(url, data=post_data)
+        response = self.session.post(url, data=json.dumps(post_data))
+        f = open("out.txt", "wb")
+        f.write(response.request.body)
+        f.close()
 
         if response.status_code == 200:
-            self.logger.debug(response.content)
+            LOG.debug(response.content)
         else:
-            self.logger.warn(response.content)
+            LOG.warn(response.content)
 
+    def get_post(self, post_id):
+        """
+        get a message from mattermost.
+        :param post_id: message to retreive
+        """
+        LOG.debug("Getting message from mattermost: %s", post_id)
+        url = '%s/api/v3/teams/%s/channels/%s/posts/%s/get' \
+              % (self.server_url, self.team_id, self.channel_id, post_id)
+        response = self.session.get(url)
 
-def setup_logging(verbose):
-    """
-    Configure logging
-    :param verbose: If true set logger to debug
-    :return: logger
-    """
-    logger = logging.getLogger('Mattermost')
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+        if response.status_code != 200:
+            raise RuntimeError("Server unhappy. (%s)", response)
 
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+        return response.content
 
-    if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logger.info("Verbose logging")
-    else:
-        logging.getLogger().setLevel(logging.INFO)
+    def get_posts(self, offset=0, limit=10):
+        """
+        get messages from mattermost.
+        :param post_id: message to retreive
+        """
+        LOG.debug("Getting messages from mattermost")
+        url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
+              % (self.server_url, self.team_id, self.channel_id, offset, limit)
+        LOG.debug("Sending: %s", url)
+        response = self.session.get(url)
 
-    return logger
+        if response.status_code != 200:
+            raise RuntimeError("Server unhappy. (%s)", response)
 
+        return response.content
+
+    def get_file(self, file_id):
+        """
+        geta file from mattermost.
+        :param file_id: file to retreive
+        """
+        LOG.debug("Getting a file from mattermost")
+        url = '%s/api/v3/files/%s/get' % (self.server_url, file_id)
+        LOG.debug("Sending: %s", url)
+        response = self.session.get(url)
+
+        if response.status_code != 200:
+            raise RuntimeError("Server unhappy. (%s)", response)
+
+        return response.content
 
 def format_timedelta(timedelta):
     """
@@ -240,3 +307,13 @@ def format_span(start, end):
     time_string += end.strftime('%H:%M:%S')
 
     return time_string
+
+if __name__ == '__main__':
+    logging.basicConfig()
+    LOG.setLevel(logging.DEBUG)
+
+    conn = Mattermost()
+    #conn.post("test1")
+    conn.post("test", file="/Users/tparker/pytroll/satpy/ompstest.png")
+    #conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
+    #print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")), indent=4))
