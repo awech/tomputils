@@ -28,6 +28,7 @@ import requests
 LOG = logging.getLogger(__name__)
 MAX_ATTACHMENTS = 5
 
+
 class Mattermost(object):
     """
     Interact with a mattermost server.
@@ -260,7 +261,7 @@ class Mattermost(object):
 
         if not isinstance(file_paths, list):
             file_paths = [file_paths]
-            
+
         if file_paths is not None:
             file_count = len(file_paths)
             if file_count > MAX_ATTACHMENTS:
