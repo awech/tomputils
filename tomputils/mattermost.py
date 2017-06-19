@@ -26,7 +26,7 @@ import requests
 
 
 LOG = logging.getLogger(__name__)
-
+MAX_ATTACHMENTS = 5
 
 class Mattermost(object):
     """
@@ -241,12 +241,12 @@ class Mattermost(object):
         file_id = response.json()["file_infos"][0]["id"]
         return file_id
 
-    def post(self, message, file_path=None):
+    def post(self, message, file_paths=None):
         """
         post a message to mattermost. Adapted from
         http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
         :param message: message to post
-        :param file_path: Path of to attach
+        :param file_paths: A list of up to five files to attach
         :return: post id
         :
         """
@@ -258,10 +258,20 @@ class Mattermost(object):
             'create_at': 0,
         }
 
-        if file_path is not None:
-            LOG.debug("attaching file: %s", file)
-            file_id = self.upload(file_path)
-            post_data['file_ids'] = [file_id, ]
+        if not isinstance(file_paths, list):
+            file_paths = [file_paths]
+            
+        if file_paths is not None:
+            file_count = len(file_paths)
+            if file_count > MAX_ATTACHMENTS:
+                raise RuntimeError("Matter most supports no more than %d "
+                                   "attachments per post, but %d attachemnts "
+                                   "provided." % (MAX_ATTACHMENTS, file_count))
+            file_ids = []
+            for file_path in file_paths:
+                LOG.debug("attaching file: %s", file_path)
+                file_ids.append(self.upload(file_path))
+            post_data['file_ids'] = file_ids
 
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
@@ -372,12 +382,13 @@ if __name__ == '__main__':
 
     conn = Mattermost(server_url="https://chat.avo.alaska.edu",
                       team_name='avo', channel_name='rs-processing-test')
-    pid = conn.post("### Here's an image",
-                    file_path="/Users/tomp/pytroll/satpy/ompstest.png")
+    # pid = conn.post("### Here's an image",
+    #               file_path="/Users/tomp/pytroll/satpy/ompstest.png")
 
-    print("GOT POST %s" % pid)
+    # print("GOT POST %s" % pid)
     # conn.post("test2")
-    # conn.post("test", file_path="/Users/tomp/pytroll/satpy/ompstest.png")
+    conn.post("test1",
+              file_paths="/Users/tparker/pytroll/satpy/ompstest.png")
     # conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
     # print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")),
     # indent=4))
