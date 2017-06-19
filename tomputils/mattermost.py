@@ -167,7 +167,7 @@ class Mattermost(object):
             filename = os.path.basename(file)
             post_data = {'channel_id': self.channel_id,
                          'client_ids': filename}
-            file_data = {'files': (filename, open(file,'rb'))}
+            file_data = {'files': (filename, open(file, 'rb'))}
             url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
                                                        self.team_id)
             response = self.session.post(url, data=post_data, files=file_data)
@@ -192,7 +192,7 @@ class Mattermost(object):
                     msg = "File storage is disabled"
                 else:
                     msg = response
-                raise RuntimeError("Server unhappy with request, reports: %s" \
+                raise RuntimeError("Server unhappy with request, reports: %s"
                                    % msg)
             else:
                 file_id = response.json()["file_infos"][0]["id"]
@@ -203,7 +203,7 @@ class Mattermost(object):
             'user_id': self.user_id,
             'channel_id': self.channel_id,
             'message': message,
-            'file_ids': [file_id,],
+            'file_ids': [file_id, ],
             'create_at': 0,
         }
 
@@ -267,6 +267,7 @@ class Mattermost(object):
 
         return response.content
 
+
 def format_timedelta(timedelta):
     """
     Format a timedelta into a human-friendly string
@@ -308,12 +309,14 @@ def format_span(start, end):
 
     return time_string
 
+
 if __name__ == '__main__':
     logging.basicConfig()
     LOG.setLevel(logging.DEBUG)
 
     conn = Mattermost()
-    #conn.post("test1")
+    # conn.post("test1")
     conn.post("test", file="/Users/tparker/pytroll/satpy/ompstest.png")
-    #conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
-    #print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")), indent=4))
+    # conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
+    # print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")),
+    # indent=4))
