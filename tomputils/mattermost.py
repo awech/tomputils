@@ -63,7 +63,7 @@ class Mattermost(object):
     def __init__(self, server_url=None, team_name=None, channel_name=None,
                  timeout=15):
         try:
-            self.user_id = os.environ['MATTERMOST_USER_ID2']
+            self.user_id = os.environ['MATTERMOST_USER_ID']
             LOG.debug("Mattermost user email: %s", self.user_id)
             self.user_pass = os.environ['MATTERMOST_USER_PASS']
             LOG.debug("Mattermost user pass: %s", self.user_pass)
@@ -78,6 +78,16 @@ class Mattermost(object):
         else:
             raise RuntimeError("Server URL must be provided in environment"
                                "or passed to constructor.")
+        LOG.debug("Mattermost server URL: %s", self.server_url)
+
+        self.timeout = timeout
+        self.session = requests.Session()
+        self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
+        if 'SSL_CA' in os.environ:
+            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
+            self.session.verify = os.environ['SSL_CA']
+
+        self.login()
 
         if team_name is not None:
             self.team_id = self.get_team_id(team_name)
@@ -95,13 +105,6 @@ class Mattermost(object):
             self.channel_id = None
         LOG.debug("Mattermost channelid: %s", self.channel_id)
 
-        self.session = requests.Session()
-        self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
-        if 'SSL_CA' in os.environ:
-            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
-            self.session.verify = os.environ['SSL_CA']
-
-        self.login()
 
     def login(self):
         """
@@ -111,7 +114,8 @@ class Mattermost(object):
         login_data = json.dumps({'login_id': self.user_id,
                                  'password': self.user_pass})
         LOG.debug("Sending: %s", login_data)
-        response = self.session.post(url, data=login_data)
+        response = self.session.post(url, data=login_data,
+                                     timeout=self.timeout)
         LOG.debug("Received: %s", response.json())
 
     def get_teams(self):
@@ -144,7 +148,8 @@ class Mattermost(object):
             }
         }
         """
-        response = self.session.get('%s/api/v3/teams/all' % self.server_url)
+        response = self.session.get('%s/api/v3/teams/all' % self.server_url,
+                                    timeout=self.timeout)
         return json.loads(response.content)
 
     def get_team_id(self, team_name):
@@ -194,7 +199,7 @@ class Mattermost(object):
         }
         """
         req = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
-        response = self.session.get(req)
+        response = self.session.get(req, timeout=self.timeout)
         return json.loads(response.content)
 
     def get_channel_id(self, team_id, channel_name):
@@ -225,7 +230,8 @@ class Mattermost(object):
         file_data = {'files': (filename, open(file_path, 'rb'))}
         url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
                                                    self.team_id)
-        response = self.session.post(url, data=post_data, files=file_data)
+        response = self.session.post(url, data=post_data, files=file_data,
+                                     timeout=self.timeout)
         # f = open("out.txt", "wb")
         # f.write(response.request.body)
         # f.close()
@@ -287,7 +293,8 @@ class Mattermost(object):
 
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
-        response = self.session.post(url, data=json.dumps(post_data))
+        response = self.session.post(url, data=json.dumps(post_data),
+                                     timeout=self.timeout)
         # f = open("out.txt", "wb")
         # f.write(response.request.body)
         # f.close()
@@ -308,7 +315,7 @@ class Mattermost(object):
         LOG.debug("Getting message from mattermost: %s", post_id)
         url = '%s/api/v3/teams/%s/channels/%s/posts/%s/get' \
               % (self.server_url, self.team_id, self.channel_id, post_id)
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=self.timeout)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
@@ -323,7 +330,7 @@ class Mattermost(object):
         url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
               % (self.server_url, self.team_id, self.channel_id, offset, limit)
         LOG.debug("Sending: %s", url)
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=self.timeout)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
@@ -338,7 +345,7 @@ class Mattermost(object):
         LOG.debug("Getting a file from mattermost")
         url = '%s/api/v3/files/%s/get' % (self.server_url, file_id)
         LOG.debug("Sending: %s", url)
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=self.timeout)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
