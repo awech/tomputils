@@ -105,7 +105,6 @@ class Mattermost(object):
             self.channel_id = None
         LOG.debug("Mattermost channelid: %s", self.channel_id)
 
-
     def login(self):
         """
         Authenticate with the server.
