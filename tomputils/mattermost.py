@@ -60,17 +60,40 @@ class Mattermost(object):
 
     """
 
-    def __init__(self, server_url=None, team_name=None, channel_name=None):
-        self.user_id = os.environ['MATTERMOST_USER_ID']
-        LOG.debug("Mattermost user email: %s", self.user_id)
-        self.user_pass = os.environ['MATTERMOST_USER_PASS']
-        LOG.debug("Mattermost user pass: %s", self.user_pass)
+    def __init__(self, server_url=None, team_name=None, channel_name=None,
+                 timeout=15):
+        try:
+            self.user_id = os.environ['MATTERMOST_USER_ID2']
+            LOG.debug("Mattermost user email: %s", self.user_id)
+            self.user_pass = os.environ['MATTERMOST_USER_PASS']
+            LOG.debug("Mattermost user pass: %s", self.user_pass)
+        except KeyError:
+            raise RuntimeError("MATTERMOST_USER_ID and MATTERMOST_USER_PASS "
+                               "environment variables must be set.")
 
-        if server_url is None:
+        if server_url is not None:
+            self.server_url = server_url
+        elif 'MATTERMOST_SERVER_URL' in os.environ:
             self.server_url = os.environ['MATTERMOST_SERVER_URL']
         else:
-            self.server_url = server_url
-        LOG.debug("Mattermost server URL: %s", self.server_url)
+            raise RuntimeError("Server URL must be provided in environment"
+                               "or passed to constructor.")
+
+        if team_name is not None:
+            self.team_id = self.get_team_id(team_name)
+        elif 'MATTERMOST_TEAM_ID' in os.environ:
+            self.team_id = os.environ['MATTERMOST_TEAM_ID']
+        else:
+            self.team_id = None
+        LOG.debug("Mattermost team id: %s", self.team_id)
+
+        if channel_name is not None:
+            self.channel_id = self.get_channel_id(self.team_id, channel_name)
+        elif 'MATTERMOST_CHANNEL_ID' in os.environ:
+            self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
+        else:
+            self.channel_id = None
+        LOG.debug("Mattermost channelid: %s", self.channel_id)
 
         self.session = requests.Session()
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
@@ -79,18 +102,6 @@ class Mattermost(object):
             self.session.verify = os.environ['SSL_CA']
 
         self.login()
-
-        if team_name is None:
-            self.team_id = os.environ['MATTERMOST_TEAM_ID']
-        else:
-            self.team_id = self.get_team_id(team_name)
-        LOG.debug("Mattermost team id: %s", self.team_id)
-
-        if channel_name is None:
-            self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
-        else:
-            self.channel_id = self.get_channel_id(self.team_id, channel_name)
-        LOG.debug("Mattermost channelid: %s", self.channel_id)
 
     def login(self):
         """
