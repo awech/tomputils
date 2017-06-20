@@ -122,7 +122,8 @@ class Mattermost(object):
         LOG.debug("Received: %s", response.json())
 
         if response.status_code != 200:
-            raise RuntimeError("Cannot login. Server reported: %s" % response.content)
+            raise RuntimeError("Cannot login. Server reported: %s"
+                               % response.content)
 
     def get_teams(self):
         """
