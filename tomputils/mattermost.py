@@ -7,9 +7,12 @@ using `Mattermost API V3 <https://api.mattermost.com/>`_. It will look to the
 environment for configuration, expecting to see the following environment
 variables:
 
-    * MATTERMOST_SERVER_URL=https://chat.example.com
+Required
     * MATTERMOST_USER_ID=mat_user
     * MATTERMOST_USER_PASS=mat_pass
+
+Optional
+    * MATTERMOST_SERVER_URL=https://chat.example.com
     * MATTERMOST_TEAM_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
     * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 
@@ -31,7 +34,8 @@ MAX_ATTACHMENTS = 5
 
 class Mattermost(object):
     """
-    Interact with a mattermost server.
+    Interact with a mattermost server. Precedence is given to arguments
+    provided here over those in the environment.
 
     .. rubric:: Basic Usage
 
@@ -40,19 +44,19 @@ class Mattermost(object):
     >>> conn = mm.Mattermost()
     >>> print(json.dumps(conn.get_teams(), indent=4))
     {
-        "39ou1iab7pnomynpzeme869m4w": {
+        "39ou1iab7pnom39ou1iab7pnom": {
             "allowed_domains": "",
             "display_name": "AVO",
             "name": "avo",
-            "invite_id": "89hj448uktds9px9eei65qg55h",
+            "invite_id": "89hj448uktds989hj448uktds9",
             "delete_at": 0,
             "update_at": 1488239656296,
             "create_at": 1487379468267,
-            "email": "scott.crass@alaska.gov",
+            "email": "mmadmin@example.com",
             "company_name": "",
             "allow_open_invite": true,
             "type": "O",
-            "id": "39ou1iab7pnomynpzeme869m4w",
+            "id": "39ou1iab7pnom39ou1iab7pnom",
             "description": ""
         }
     }
@@ -130,19 +134,19 @@ class Mattermost(object):
         >>> conn = mm.Mattermost()
         >>> print(json.dumps(conn.get_teams(), indent=4))
         {
-            "39ou1iab7pnomynpzeme869m4w": {
+            "39ou1iab7pnom39ou1iab7pnom": {
                 "allowed_domains": "",
                 "display_name": "AVO",
                 "name": "avo",
-                "invite_id": "89hj448uktds9px9eei65qg55h",
+                "invite_id": "89hj448uktds989hj448uktds9",
                 "delete_at": 0,
                 "update_at": 1488239656296,
                 "create_at": 1487379468267,
-                "email": "scott.crass@alaska.gov",
+                "email": "mmadmin@example.com",
                 "company_name": "",
                 "allow_open_invite": true,
                 "type": "O",
-                "id": "39ou1iab7pnomynpzeme869m4w",
+                "id": "39ou1iab7pnom39ou1iab7pnom",
                 "description": ""
             }
         }
@@ -153,10 +157,9 @@ class Mattermost(object):
 
     def get_team_id(self, team_name):
         """
-        Get a team id.
+        Get a team id, given its name.
 
         :return: team id
-
         """
 
         teams = self.get_teams()
@@ -169,7 +172,8 @@ class Mattermost(object):
 
     def get_channels(self, team_id):
         """
-        Get a list of available channels for a team
+        Get a list of available channels for a team.
+
         :param team_id: Team Id to check
         :return: Avaliable channels
 
@@ -180,19 +184,19 @@ class Mattermost(object):
         >>> conn = mm.Mattermost()
         >>> print(json.dumps(conn.get_channels(), indent=4))
         {
-            "39ou1iab7pnomynpzeme869m4w": {
+            "39ou1iab7pnom39ou1iab7pnom": {
                 "allowed_domains": "",
                 "display_name": "AVO",
                 "name": "avo",
-                "invite_id": "89hj448uktds9px9eei65qg55h",
+                "invite_id": "89hj448uktds989hj448uktds9",
                 "delete_at": 0,
                 "update_at": 1488239656296,
                 "create_at": 1487379468267,
-                "email": "scott.crass@alaska.gov",
+                "email": "mmadmin@example.com",
                 "company_name": "",
                 "allow_open_invite": true,
                 "type": "O",
-                "id": "39ou1iab7pnomynpzeme869m4w",
+                "id": "39ou1iab7pnom39ou1iab7pnom",
                 "description": ""
             }
         }
@@ -203,7 +207,7 @@ class Mattermost(object):
 
     def get_channel_id(self, team_id, channel_name):
         """
-        Locate channel by name.
+        Return channel id given a channel name.
 
         :param team_id:
         :param channel_name:
@@ -218,7 +222,8 @@ class Mattermost(object):
 
     def upload(self, file_path):
         """
-        upload a file
+        Upload a file which can later be attached to a post.
+
         :param file_path:
         :return:
         """
@@ -231,9 +236,6 @@ class Mattermost(object):
                                                    self.team_id)
         response = self.session.post(url, data=post_data, files=file_data,
                                      timeout=self.timeout)
-        # f = open("out.txt", "wb")
-        # f.write(response.request.body)
-        # f.close()
         LOG.debug("Received: %s - %s", response.status_code, response.text)
 
         if response.status_code != 200:
@@ -294,9 +296,6 @@ class Mattermost(object):
               % (self.server_url, self.team_id, self.channel_id)
         response = self.session.post(url, data=json.dumps(post_data),
                                      timeout=self.timeout)
-        # f = open("out.txt", "wb")
-        # f.write(response.request.body)
-        # f.close()
 
         if response.status_code == 200:
             LOG.debug(response.content)
@@ -308,7 +307,8 @@ class Mattermost(object):
 
     def get_post(self, post_id):
         """
-        get a message from mattermost.
+        Get a message from mattermost, given its id.
+
         :param post_id: message to retreive
         """
         LOG.debug("Getting message from mattermost: %s", post_id)
@@ -323,7 +323,7 @@ class Mattermost(object):
 
     def get_posts(self, offset=0, limit=10):
         """
-        get messages from mattermost.
+        get a series of posts from a Mattermost channel.
         """
         LOG.debug("Getting messages from mattermost")
         url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
@@ -338,7 +338,8 @@ class Mattermost(object):
 
     def get_file(self, file_id):
         """
-        geta file from mattermost.
+        Get a file from mattermost, given its id.
+
         :param file_id: file to retreive
         """
         LOG.debug("Getting a file from mattermost")
@@ -354,7 +355,8 @@ class Mattermost(object):
 
 def format_timedelta(timedelta):
     """
-    Format a timedelta into a human-friendly string
+    Format a timedelta into a human-friendly string.
+
     :param timedelta: timedelta to format
     :return: Pretty string
     """
