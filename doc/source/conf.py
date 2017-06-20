@@ -16,9 +16,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import sphinx_rtd_theme
 import sys
 from mock import Mock as MagicMock
@@ -65,7 +65,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'tomputils'
-copyright = u'2017, Tom Parker'
+# copyright = u'2017, Tom Parker'
 author = u'Tom Parker'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -172,3 +172,6 @@ texinfo_documents = [
      author, 'tomputils', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+# -- Local options --------------------------------------------------------
+nitpicky = True
