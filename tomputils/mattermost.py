@@ -121,6 +121,9 @@ class Mattermost(object):
                                      timeout=self.timeout)
         LOG.debug("Received: %s", response.json())
 
+        if response.status_code != 200:
+            raise RuntimeError("Cannot login. Server reported: %s" % response.content)
+
     def get_teams(self):
         """
         Get a list of teams on the server.
@@ -203,6 +206,7 @@ class Mattermost(object):
         """
         req = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
         response = self.session.get(req, timeout=self.timeout)
+        print("TOMP %s", response.content)
         return json.loads(response.content)
 
     def get_channel_id(self, team_id, channel_name):
@@ -359,6 +363,15 @@ def format_timedelta(timedelta):
 
     :param timedelta: timedelta to format
     :return: Pretty string
+
+    .. rubric:: Basic Usage
+
+    >>> from datetime import timedelta
+    >>> from tomputils import mattermost as mm
+    >>> td = timedelta(days=2, hours=4, seconds=5)
+    >>> print(mm.format_timedelta(td))
+    2d 4h 5s
+    >>>
     """
     seconds = timedelta.total_seconds()
 
@@ -389,6 +402,16 @@ def format_span(start, end):
     :param start: start datetime
     :param end: end datetime
     :return: Pretty string
+
+    .. rubric:: Basic Usage
+
+    >>> from datetime import datetime
+    >>> from tomputils import mattermost as mm
+    >>> start = datetime(2017,4,1,12,55,1)
+    >>> end = datetime(2017,4,2,2,20,1)
+    >>> print(mm.format_span(start, end))
+    04/01/2017 12:55:01 - 02:20:01
+    >>>
     """
     time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')
     time_string += end.strftime('%H:%M:%S')
@@ -400,8 +423,9 @@ if __name__ == '__main__':
     logging.basicConfig()
     LOG.setLevel(logging.DEBUG)
 
-    conn = Mattermost(server_url="https://chat.avo.alaska.edu",
-                      team_name='avo', channel_name='rs-processing-test')
+    # conn = Mattermost(server_url="https://chat.avo.alaska.edu",
+    #                   team_name='avo', channel_name='rs-processing-test')
+    conn = Mattermost()
     # pid = conn.post("### Here's an image",
     #               file_path="/Users/tomp/pytroll/satpy/ompstest.png")
 
