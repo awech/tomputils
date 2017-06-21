@@ -34,8 +34,7 @@ MAX_ATTACHMENTS = 5
 
 class Mattermost(object):
     """
-    Interact with a mattermost server. Precedence is given to arguments
-    provided here over those in the environment.
+    Interact with a mattermost server.
 
     .. rubric:: Basic Usage
 
@@ -64,61 +63,85 @@ class Mattermost(object):
 
     """
 
-    def __init__(self, server_url=None, team_name=None, channel_name=None,
-                 timeout=15):
-        try:
-            self.user_id = os.environ['MATTERMOST_USER_ID']
-            LOG.debug("Mattermost user email: %s", self.user_id)
-            self.user_pass = os.environ['MATTERMOST_USER_PASS']
-            LOG.debug("Mattermost user pass: %s", self.user_pass)
-        except KeyError:
-            raise RuntimeError("MATTERMOST_USER_ID and MATTERMOST_USER_PASS "
-                               "environment variables must be set.")
+    try:
+        user_id = os.environ['MATTERMOST_USER_ID']
+        user_pass = os.environ['MATTERMOST_USER_PASS']
+    except KeyError:
+        raise RuntimeError("MATTERMOST_USER_ID and MATTERMOST_USER_PASS "
+                           "environment variables must be set.")
 
+    def __init__(self, server_url=None, timeout=15, retries=1):
         if server_url is not None:
             self.server_url = server_url
-        elif 'MATTERMOST_SERVER_URL' in os.environ:
-            self.server_url = os.environ['MATTERMOST_SERVER_URL']
         else:
-            raise RuntimeError("Server URL must be provided in environment"
-                               "or passed to constructor.")
+            try:
+                self.server_url = os.environ['MATTERMOST_SERVER_URL']
+            except KeyError:
+                raise RuntimeError("Server URL must be provided in environment"
+                                   " or passed to the constructor.")
         LOG.debug("Mattermost server URL: %s", self.server_url)
 
-        self.timeout = timeout
-        self.session = requests.Session()
-        self.session.headers.update({"X-Requested-With": "XMLHttpRequest"})
-        if 'SSL_CA' in os.environ:
-            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
-            self.session.verify = os.environ['SSL_CA']
-
-        self.login()
-
-        if team_name is not None:
-            self.team_id = self.get_team_id(team_name)
-        elif 'MATTERMOST_TEAM_ID' in os.environ:
+        if 'MATTERMOST_TEAM_ID' in os.environ:
             self.team_id = os.environ['MATTERMOST_TEAM_ID']
         else:
             self.team_id = None
         LOG.debug("Mattermost team id: %s", self.team_id)
 
-        if channel_name is not None:
-            self.channel_id = self.get_channel_id(self.team_id, channel_name)
-        elif 'MATTERMOST_CHANNEL_ID' in os.environ:
+        if 'MATTERMOST_CHANNEL_ID' in os.environ:
             self.channel_id = os.environ['MATTERMOST_CHANNEL_ID']
         else:
             self.channel_id = None
-        LOG.debug("Mattermost channelid: %s", self.channel_id)
+        LOG.debug("Mattermost channel id: %s", self.channel_id)
+
+        self.timeout = timeout
+        LOG.debug("timeout: {}".format(self.timeout))
+
+        self.retries = retries
+        LOG.debug("retries: {}".format(self.retries))
+
+        self._session = requests.Session()
+        self._session.headers.update({"X-Requested-With": "XMLHttpRequest"})
+        if 'SSL_CA' in os.environ:
+            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
+            self._session.verify = os.environ['SSL_CA']
+
+        self.login()
+
+    def team_name(self, team_name):
+        self.team_id = self.get_team_id(team_name)
+        LOG.debug("Mattermost team id: %s", self.team_id)
+
+    def channel_name(self, channel_name):
+        self.channel_id = self.get_channel_id(channel_name)
+        LOG.debug("Mattermost channel id: %s", self.channel_id)
+
+    def _request(self, method, url, retries=None, **kwargs):
+        if retries is None:
+            retries = self.retries
+
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = self.timeout
+
+        try:
+            LOG.debug("Attempting: {} {}".format(method, kwargs))
+            ret = method(url, **kwargs)
+        except:
+            if retries > 0:
+                self._request(method, url, retries=retries-1, **kwargs)
+            else:
+                raise
+
+        return ret
 
     def login(self):
         """
         Authenticate with the server.
         """
         url = self.server_url + '/api/v3/users/login'
-        login_data = json.dumps({'login_id': self.user_id,
-                                 'password': self.user_pass})
+        login_data = json.dumps({'login_id': Mattermost.user_id,
+                                 'password': Mattermost.user_pass})
         LOG.debug("Sending: %s", login_data)
-        response = self.session.post(url, data=login_data,
-                                     timeout=self.timeout)
+        response = self._request(self._session.post, url, data=login_data)
         LOG.debug("Received: %s", response.json())
 
         if response.status_code != 200:
@@ -155,8 +178,10 @@ class Mattermost(object):
             }
         }
         """
-        response = self.session.get('%s/api/v3/teams/all' % self.server_url,
-                                    timeout=self.timeout)
+        response = self._session.get('%s/api/v3/teams/all' % self.server_url,
+                                     timeout=self.timeout)
+        url = '{}/api/v3/teams/all'.format(self.server_url)
+        response = self._request(self._session.get, url)
         return json.loads(response.content)
 
     def get_team_id(self, team_name):
@@ -205,9 +230,8 @@ class Mattermost(object):
             }
         }
         """
-        req = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
-        response = self.session.get(req, timeout=self.timeout)
-        print("TOMP %s", response.content)
+        url = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
+        response = self._request(self._session.get, url)
         return json.loads(response.content)
 
     def get_channel_id(self, team_id, channel_name):
@@ -239,8 +263,8 @@ class Mattermost(object):
         file_data = {'files': (filename, open(file_path, 'rb'))}
         url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
                                                    self.team_id)
-        response = self.session.post(url, data=post_data, files=file_data,
-                                     timeout=self.timeout)
+        response = self._request(self._session.post, url, data=post_data,
+                                 files=file_data)
         LOG.debug("Received: %s - %s", response.status_code, response.text)
 
         if response.status_code != 200:
@@ -299,8 +323,8 @@ class Mattermost(object):
 
         url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
               % (self.server_url, self.team_id, self.channel_id)
-        response = self.session.post(url, data=json.dumps(post_data),
-                                     timeout=self.timeout)
+        response = self._request(self._session.post, url,
+                                 data=json.dumps(post_data))
 
         if response.status_code == 200:
             LOG.debug(response.content)
@@ -319,7 +343,7 @@ class Mattermost(object):
         LOG.debug("Getting message from mattermost: %s", post_id)
         url = '%s/api/v3/teams/%s/channels/%s/posts/%s/get' \
               % (self.server_url, self.team_id, self.channel_id, post_id)
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._request(self._session.get, url)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
@@ -334,7 +358,7 @@ class Mattermost(object):
         url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
               % (self.server_url, self.team_id, self.channel_id, offset, limit)
         LOG.debug("Sending: %s", url)
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._request(self._session.get, url)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
@@ -350,7 +374,7 @@ class Mattermost(object):
         LOG.debug("Getting a file from mattermost")
         url = '%s/api/v3/files/%s/get' % (self.server_url, file_id)
         LOG.debug("Sending: %s", url)
-        response = self.session.get(url, timeout=self.timeout)
+        response = self._request(self._session.get, url)
 
         if response.status_code != 200:
             raise RuntimeError("Server unhappy. (%s)", response)
@@ -427,6 +451,8 @@ if __name__ == '__main__':
     # conn = Mattermost(server_url="https://chat.avo.alaska.edu",
     #                   team_name='avo', channel_name='rs-processing-test')
     conn = Mattermost()
+    conn.retries = 5
+    conn.timeout = 1
     # pid = conn.post("### Here's an image",
     #               file_path="/Users/tomp/pytroll/satpy/ompstest.png")
 
