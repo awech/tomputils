@@ -383,7 +383,8 @@ class Mattermost(object):
         """
         Post a message to mattermost.
 
-        Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
+        Adapted from http://stackoverflow.com/questions/42305599/\
+        how-to-send-file-through-mattermost-incoming-webhook
 
         Parameters
         ----------
