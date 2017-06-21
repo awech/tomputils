@@ -19,9 +19,9 @@ Optional
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import os
 import json
 import logging
+import os
 
 from future.builtins import *  # NOQA
 
@@ -36,8 +36,29 @@ class Mattermost(object):
     """
     Interact with a mattermost server.
 
-    .. rubric:: Basic Usage
+    Parameters
+    ----------
+    server_url : str, optional
+        URL of Mattermost server. Optional if MATTERMOST_SERVER_URL
+        environment variable is present.
+    timeout : int or tuple of (int, int), optional
+        HTTP timeout.
+    retries : int, optional
+        Number of times to retry a request.
 
+    Attributes
+    ----------
+    timeout : int or tuple of (int, int)
+        HTTP timeout.
+    retries : int
+        Maximum number of times to send a request to the Mattermost server.
+    team_id : str
+        Mattermost ID of the working team
+    channel_id : str
+        Mattermost ID of the working channel
+
+    Examples
+    --------
     >>> import json
     >>> import tomputils.mattermost as mm
     >>> conn = mm.Mattermost()
@@ -73,10 +94,9 @@ class Mattermost(object):
     def __init__(self, server_url=None, timeout=15, retries=1):
         if server_url is not None:
             self.server_url = server_url
-        else:
-            try:
+        elif 'MATTERMOST_SERVER_URL' in os.environ:
                 self.server_url = os.environ['MATTERMOST_SERVER_URL']
-            except KeyError:
+        else:
                 raise RuntimeError("Server URL must be provided in environment"
                                    " or passed to the constructor.")
         LOG.debug("Mattermost server URL: %s", self.server_url)
@@ -105,17 +125,51 @@ class Mattermost(object):
             LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
             self._session.verify = os.environ['SSL_CA']
 
-        self.login()
+        self._login()
 
     def team_name(self, team_name):
+        """
+        Set team ID given a name.
+
+        Parameters
+        ----------
+        team_name : str
+            Name of team to find.
+
+        """
         self.team_id = self.get_team_id(team_name)
         LOG.debug("Mattermost team id: %s", self.team_id)
 
     def channel_name(self, channel_name):
+        """
+        Set channel ID given a name.
+
+        Parameters
+        ----------
+        channel_name : str
+            Name of channel to find.
+
+        """
         self.channel_id = self.get_channel_id(channel_name)
         LOG.debug("Mattermost channel id: %s", self.channel_id)
 
     def _request(self, method, url, retries=None, **kwargs):
+        """
+        Make a HTTP request, retrying if necessary.
+
+        Parameters
+        ----------
+        method : bound method
+            Method used to make the request.
+        url : str
+        retries : int, optional
+
+        Returns
+        -------
+        str
+            Server response.
+
+        """
         if retries is None:
             retries = self.retries
 
@@ -133,9 +187,10 @@ class Mattermost(object):
 
         return ret
 
-    def login(self):
+    def _login(self):
         """
         Authenticate with the server.
+
         """
         url = self.server_url + '/api/v3/users/login'
         login_data = json.dumps({'login_id': Mattermost.user_id,
@@ -152,10 +207,13 @@ class Mattermost(object):
         """
         Get a list of teams on the server.
 
-        :return: Known teams
+        Returns
+        -------
+        JSON
+            Teams on server
 
-            .. rubric:: Basic Usage
-
+        Examples
+        --------
         >>> import json
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
@@ -177,6 +235,7 @@ class Mattermost(object):
                 "description": ""
             }
         }
+
         """
         response = self._session.get('%s/api/v3/teams/all' % self.server_url,
                                      timeout=self.timeout)
@@ -188,7 +247,16 @@ class Mattermost(object):
         """
         Get a team id, given its name.
 
-        :return: team id
+        Parameters
+        ----------
+        team_name : str
+            Name of team to find.
+
+        Returns
+        -------
+        str
+            Mattermost team ID.
+
         """
 
         teams = self.get_teams()
@@ -199,15 +267,17 @@ class Mattermost(object):
 
         return None
 
-    def get_channels(self, team_id):
+    def get_channels(self):
         """
-        Get a list of available channels for a team.
+        Get a list of available channels.
 
-        :param team_id: Team Id to check
-        :return: Avaliable channels
+        Returns
+        -------
+        JSON
+            Available channels.
 
-        .. rubric:: Basic Usage
-
+        Examples
+        --------
         >>> import json
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
@@ -229,20 +299,33 @@ class Mattermost(object):
                 "description": ""
             }
         }
+
         """
-        url = '%s/api/v3/teams/%s/channels/' % (self.server_url, team_id)
+        if self.team_id is None:
+            raise RuntimeError("Please set team_id before calling"
+                               "get_channels")
+        url = '%s/api/v3/teams/%s/channels/'.format(self.server_url,
+                                                    self.team_id)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
 
-    def get_channel_id(self, team_id, channel_name):
+    def get_channel_id(self, channel_name):
         """
         Return channel id given a channel name.
 
-        :param team_id:
-        :param channel_name:
-        :return: channel id
+        Parameters
+        ----------
+        channel_name : str
+
+        Returns
+        -------
+        str
+            Mattermost ID of channel.
         """
-        channels = self.get_channels(team_id)
+        if self.team_id is None:
+            raise RuntimeError("Please set team_id before calling"
+                               "get_channel_id")
+        channels = self.get_channels(self.team_id)
         for channel in channels:
             if channel['name'] == channel_name:
                 return channel['id']
@@ -253,8 +336,15 @@ class Mattermost(object):
         """
         Upload a file which can later be attached to a post.
 
-        :param file_path:
-        :return:
+        Parameters
+        ----------
+        file_path : str
+
+        Returns
+        -------
+        str
+            Mattermost ID of uploaded file.
+
         """
         LOG.debug(("Uploading file to mattermost: %s", file_path))
         filename = os.path.basename(file_path)
@@ -291,16 +381,27 @@ class Mattermost(object):
 
     def post(self, message, file_paths=None):
         """
-        post a message to mattermost. Adapted from
-        http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
-        :param message: message to post
-        :param file_paths: A list of up to five files to attach
-        :return: post id
-        :
+        Post a message to mattermost.
+
+        Adapted from http://stackoverflow.com/questions/42305599/how-to-send-file-through-mattermost-incoming-webhook
+
+        Parameters
+        ----------
+        message : str
+            Message text to be posted.
+
+        file_paths : str or list of str, optional
+            Files to be attached to post.
+
+        Returns
+        -------
+        str
+            Mattermost ID of the post.
+
         """
         LOG.debug("Posting message to mattermost: %s", message)
         post_data = {
-            'user_id': self.user_id,
+            'user_id': Mattermost.user_id,
             'channel_id': self.channel_id,
             'message': message,
             'create_at': 0,
@@ -338,7 +439,16 @@ class Mattermost(object):
         """
         Get a message from mattermost, given its id.
 
-        :param post_id: message to retreive
+        Parameters
+        ----------
+        post_id: str
+            Mattermost ID of the post to be retreived.
+
+        Returns
+        -------
+        json
+            JSON of the post.
+
         """
         LOG.debug("Getting message from mattermost: %s", post_id)
         url = '%s/api/v3/teams/%s/channels/%s/posts/%s/get' \
@@ -352,7 +462,20 @@ class Mattermost(object):
 
     def get_posts(self, offset=0, limit=10):
         """
-        get a series of posts from a Mattermost channel.
+        Get a series of posts from a Mattermost channel.
+
+        Parameters
+        ----------
+        offset : int, optional
+            First post to retrieve.
+        limit : int, optional
+            Maximum number of posts to retrieve.
+
+        Returns
+        -------
+        json
+            JSON containing the posts.
+
         """
         LOG.debug("Getting messages from mattermost")
         url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
@@ -369,7 +492,16 @@ class Mattermost(object):
         """
         Get a file from mattermost, given its id.
 
-        :param file_id: file to retreive
+        Parameters
+        ----------
+        file_id: str
+            Mattermost id of the file to be retreived.
+
+        Returns
+        -------
+        bytes
+            File bytes.
+
         """
         LOG.debug("Getting a file from mattermost")
         url = '%s/api/v3/files/%s/get' % (self.server_url, file_id)
@@ -386,17 +518,24 @@ def format_timedelta(timedelta):
     """
     Format a timedelta into a human-friendly string.
 
-    :param timedelta: timedelta to format
-    :return: Pretty string
+    Parameters
+    ----------
+    timedelta : timedelta
 
-    .. rubric:: Basic Usage
+    Returns
+    -------
+    str
+        Formatted timedelta.
 
+    Examples
+    --------
     >>> from datetime import timedelta
     >>> from tomputils import mattermost as mm
     >>> td = timedelta(days=2, hours=4, seconds=5)
     >>> print(mm.format_timedelta(td))
     2d 4h 5s
     >>>
+
     """
     seconds = timedelta.total_seconds()
 
@@ -423,13 +562,20 @@ def format_timedelta(timedelta):
 
 def format_span(start, end):
     """
-    format a time span into a human-friendly string
-    :param start: start datetime
-    :param end: end datetime
-    :return: Pretty string
+    Format a time span into a human-friendly string.
 
-    .. rubric:: Basic Usage
+    Parameters
+    ----------
+    start : datetime
+    end : datetime
 
+    Returns
+    -------
+    str
+        Formatted time span.
+
+    Examples
+    --------
     >>> from datetime import datetime
     >>> from tomputils import mattermost as mm
     >>> start = datetime(2017,4,1,12,55,1)
@@ -437,6 +583,7 @@ def format_span(start, end):
     >>> print(mm.format_span(start, end))
     04/01/2017 12:55:01 - 02:20:01
     >>>
+
     """
     time_string = start.strftime('%m/%d/%Y %H:%M:%S - ')
     time_string += end.strftime('%H:%M:%S')
