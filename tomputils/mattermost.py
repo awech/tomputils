@@ -179,14 +179,12 @@ class Mattermost(object):
 
         try:
             LOG.debug("Attempting: {} {}".format(method, kwargs))
-            ret = method(url, **kwargs)
+            return method(url, **kwargs)
         except:
             if retries > 0:
                 self._request(method, url, retries=retries-1, **kwargs)
             else:
                 raise
-
-        return ret
 
     def _login(self):
         """
