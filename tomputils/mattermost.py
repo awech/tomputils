@@ -84,14 +84,15 @@ class Mattermost(object):
 
     """
 
-    try:
-        user_id = os.environ['MATTERMOST_USER_ID']
-        user_pass = os.environ['MATTERMOST_USER_PASS']
-    except KeyError:
-        raise RuntimeError("MATTERMOST_USER_ID and MATTERMOST_USER_PASS "
-                           "environment variables must be set.")
 
     def __init__(self, server_url=None, timeout=15, retries=1):
+        try:
+            self._user_id = os.environ['MATTERMOST_USER_ID']
+            self._user_pass = os.environ['MATTERMOST_USER_PASS']
+        except KeyError:
+            raise RuntimeError("MATTERMOST_USER_ID and MATTERMOST_USER_PASS "
+                               "environment variables must be set.")
+
         if server_url is not None:
             self.server_url = server_url
         elif 'MATTERMOST_SERVER_URL' in os.environ:
@@ -193,8 +194,8 @@ class Mattermost(object):
 
         """
         url = self.server_url + '/api/v3/users/login'
-        login_data = json.dumps({'login_id': Mattermost.user_id,
-                                 'password': Mattermost.user_pass})
+        login_data = json.dumps({'login_id': self._user_id,
+                                 'password': self._user_pass})
         LOG.debug("Sending: %s", login_data)
         response = self._request(self._session.post, url, data=login_data)
         LOG.debug("Received: %s", response.json())
@@ -402,7 +403,7 @@ class Mattermost(object):
         """
         LOG.debug("Posting message to mattermost: %s", message)
         post_data = {
-            'user_id': Mattermost.user_id,
+            'user_id': self._user_id,
             'channel_id': self.channel_id,
             'message': message,
             'create_at': 0,
