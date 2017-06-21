@@ -84,7 +84,6 @@ class Mattermost(object):
 
     """
 
-
     def __init__(self, server_url=None, timeout=15, retries=1):
         try:
             self._user_id = os.environ['MATTERMOST_USER_ID']
