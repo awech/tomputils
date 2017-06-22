@@ -597,8 +597,9 @@ def format_span(start, end):
 
 def _arg_parse():
     description = "Interact with a Mattermost server. Not all possible " \
-                  "combinations of arguments will make sense, avoid those. " \
-                  "The message to post, if any, will be read from <STDIN>."
+                  "combinations of arguments will make sense, avoid those " \
+                  "that do not make sense. The message to post, if any, " \
+                  "will be read from <STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("command", choices=('post', 'getteams'),
