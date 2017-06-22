@@ -602,7 +602,8 @@ def _arg_parse():
                   "The message to post, if any, will be read from <STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("command", choices=('post', 'getteams'), help="Command")
+    parser.add_argument("command", choices=('post', 'getteams'),
+                        help="Command")
     parser.add_argument("-a", "--attachments", action='append',
                         help="File to attach. Argument may be repeated to "
                              "attach multiple files.")
@@ -639,6 +640,7 @@ def do_command():
     elif args.command == 'getteams':
         teams = conn.get_teams()
         print(json.dumps(teams, indent=4))
+
 
 if __name__ == '__main__':
     do_command()
