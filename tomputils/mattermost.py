@@ -602,7 +602,7 @@ def _arg_parse():
                   "will be read from <STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("command", choices=('post', 'getteams'),
+    parser.add_argument("command", choices=('post', 'getteams', 'getchannels'),
                         help="Command")
     parser.add_argument("-a", "--attachments", action='append',
                         help="File to attach. Argument may be repeated to "
@@ -612,6 +612,12 @@ def _arg_parse():
                         type=int, default=DEFAULT_RETRIES)
     parser.add_argument("-t", "--timeout", help="request timeout", type=int,
                         default=DEFAULT_TIMEOUT)
+    help_text = "Mattermost team name. Will override MATTERMOST_TEAM_ID " \
+                + "environment variable."
+    parser.add_argument("--team-name", help=help_text)
+    help_text = "Mattermost channel name. Will override MATTERMOST_CHANNEL_ID " \
+                "environment variable."
+    parser.add_argument("--channel-name", help=help_text)
     parser.add_argument("-v", "--verbose", help="Verbose logging",
                         action='store_true')
 
@@ -630,17 +636,25 @@ def do_command():
         LOG.setLevel(logging.DEBUG)
 
     conn = Mattermost(retries=args.retries, timeout=args.timeout)
+    if args.team_name is not None:
+        conn.team_name(args.team_name)
+
+    if args.channel_name is not None:
+        conn.channel_name(args.channel_name)
 
     if args.command == 'post':
         LOG.debug("Executing post")
         message = sys.stdin.read()
         if len(message) == 0:
             sys.exit(1)
-
+            
         conn.post(message, file_paths=args.attachments)
     elif args.command == 'getteams':
         teams = conn.get_teams()
         print(json.dumps(teams, indent=4))
+    elif args.command == 'getchannels':
+        channels = conn.get_channels()
+        print(json.dumps(channels, indent=4))
 
 
 if __name__ == '__main__':
