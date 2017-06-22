@@ -596,7 +596,6 @@ def format_span(start, end):
 
 
 def _arg_parse():
-
     description = "Interact with a Mattermost server. Not all possible " \
                   "combinations of arguments will make sense, avoid those. " \
                   "The message to post, if any, will be read from <STDIN>."
@@ -620,7 +619,8 @@ def _arg_parse():
 
 def do_command():
     """
-    Fulfill a command provided on the command line.
+    Fulfill a command provided on the command line. Entrypoint for mattermost
+    console script.
 
     """
     logging.basicConfig()
