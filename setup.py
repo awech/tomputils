@@ -32,4 +32,9 @@ setup(
         ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'mattermost = tomputils.mattermost:do_command'
+        ]
+    }
 )
