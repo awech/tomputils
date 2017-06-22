@@ -19,9 +19,12 @@ Optional
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+import argparse
+from enum import Enum
 import json
 import logging
 import os
+import sys
 
 from future.builtins import *  # NOQA
 
@@ -31,6 +34,8 @@ import requests
 LOG = logging.getLogger(__name__)
 MAX_ATTACHMENTS = 5
 
+class Command(Enum):
+    POST = 1
 
 class Mattermost(object):
     """
@@ -83,6 +88,7 @@ class Mattermost(object):
     >>>
 
     """
+
 
     def __init__(self, server_url=None, timeout=15, retries=1):
         try:
@@ -590,22 +596,51 @@ def format_span(start, end):
     return time_string
 
 
+def _arg_parse():
+
+    description = "Interact with a Mattermost server. Not all possible "
+    "combinations of arguments will make sense. Don't use those combinations "
+    "which do not make sense. The message to post, if any, will be read from "
+    "<STDIN>."
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("command", choices=Command, help="Command")
+    parser.add_argument("-a", "--attachments",
+                        help="A comma-seperated list of files to attach")
+    # parser.add_argument("-b", "--backfill",
+    #                     help="# of days to back fill",
+    #                     type=int, default=DEFAULT_BACKFILL)
+    # parser.add_argument("-v", "--verbose",
+    #                     help="Verbose logging",
+    #                     action='store_true')
+    # parser.add_argument('-f', '--facility', choices=FACILITIES,
+    #                     help="facility to query", required=True)
+    # parser.add_argument('instrument', choices=INSTRUMENTS.keys(),
+    #                     help="instrument to query")
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
     logging.basicConfig()
     LOG.setLevel(logging.DEBUG)
-
+    print("TOMP SAYS {}".format(sys.argv))
+    args = _arg_parse()
+    print("TOMP ALSO SAYS {}".format(args))
+    # conn = Mattermost(retries=5, timeout=1)
+    # conn.post("test")
     # conn = Mattermost(server_url="https://chat.avo.alaska.edu",
     #                   team_name='avo', channel_name='rs-processing-test')
-    conn = Mattermost()
-    conn.retries = 5
-    conn.timeout = 1
+    # conn = Mattermost()
+    # conn.retries = 5
+    # conn.timeout = 1
     # pid = conn.post("### Here's an image",
     #               file_path="/Users/tomp/pytroll/satpy/ompstest.png")
 
     # print("GOT POST %s" % pid)
     # conn.post("test2")
-    conn.post("test1",
-              file_paths="/Users/tparker/pytroll/satpy/ompstest.png")
+    # conn.post("test1",
+    #         file_paths="/Users/tparker/pytroll/satpy/ompstest.png")
     # conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
     # print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")),
     # indent=4))
