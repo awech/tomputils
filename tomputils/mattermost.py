@@ -20,7 +20,6 @@ Optional
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import argparse
-from enum import Enum
 import json
 import logging
 import os
@@ -33,9 +32,9 @@ import requests
 
 LOG = logging.getLogger(__name__)
 MAX_ATTACHMENTS = 5
+DEFAULT_RETRIES = 5
+DEFAULT_TIMEOUT = 15
 
-class Command(Enum):
-    POST = 1
 
 class Mattermost(object):
     """
@@ -89,8 +88,8 @@ class Mattermost(object):
 
     """
 
-
-    def __init__(self, server_url=None, timeout=15, retries=1):
+    def __init__(self, server_url=None, timeout=DEFAULT_TIMEOUT,
+                 retries=DEFAULT_RETRIES):
         try:
             self._user_id = os.environ['MATTERMOST_USER_ID']
             self._user_pass = os.environ['MATTERMOST_USER_PASS']
@@ -412,10 +411,10 @@ class Mattermost(object):
             'create_at': 0,
         }
 
-        if not isinstance(file_paths, list):
-            file_paths = [file_paths]
-
         if file_paths is not None:
+            if not isinstance(file_paths, list):
+                file_paths = [file_paths]
+
             file_count = len(file_paths)
             if file_count > MAX_ATTACHMENTS:
                 raise RuntimeError("Matter most supports no more than %d "
@@ -604,47 +603,34 @@ def _arg_parse():
     "<STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("command", choices=Command, help="Command")
-    parser.add_argument("-a", "--attachments",
-                        help="A comma-seperated list of files to attach")
-    # parser.add_argument("-b", "--backfill",
-    #                     help="# of days to back fill",
-    #                     type=int, default=DEFAULT_BACKFILL)
-    # parser.add_argument("-v", "--verbose",
-    #                     help="Verbose logging",
-    #                     action='store_true')
-    # parser.add_argument('-f', '--facility', choices=FACILITIES,
-    #                     help="facility to query", required=True)
-    # parser.add_argument('instrument', choices=INSTRUMENTS.keys(),
-    #                     help="instrument to query")
+    parser.add_argument("command", choices=('post',), help="Command")
+    parser.add_argument("-a", "--attachments", action='append',
+                        help="File to attach. Argument may be repeated to "
+                             "attach multiple files.")
+    parser.add_argument("-r", "--retries",
+                        help="Maximum number of attemps to fulfill request",
+                        type=int, default=DEFAULT_RETRIES)
+    parser.add_argument("-t", "--timeout",
+                        help="request timeout", type=int,
+                        default=DEFAULT_TIMEOUT)
+    parser.add_argument("-v", "--verbose", help="Verbose logging",
+                        action='store_true')
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     logging.basicConfig()
-    LOG.setLevel(logging.DEBUG)
-    print("TOMP SAYS {}".format(sys.argv))
     args = _arg_parse()
-    print("TOMP ALSO SAYS {}".format(args))
-    # conn = Mattermost(retries=5, timeout=1)
-    # conn.post("test")
-    # conn = Mattermost(server_url="https://chat.avo.alaska.edu",
-    #                   team_name='avo', channel_name='rs-processing-test')
-    # conn = Mattermost()
-    # conn.retries = 5
-    # conn.timeout = 1
-    # pid = conn.post("### Here's an image",
-    #               file_path="/Users/tomp/pytroll/satpy/ompstest.png")
+    if args.verbose is True:
+        LOG.setLevel(logging.DEBUG)
 
-    # print("GOT POST %s" % pid)
-    # conn.post("test2")
-    # conn.post("test1",
-    #         file_paths="/Users/tparker/pytroll/satpy/ompstest.png")
-    # conn.get_post("h4yaamt1bby18f8pb1c864eqjc")
-    # print(json.dumps(json.loads(conn.get_post("h4yaamt1bby18f8pb1c864eqjc")),
-    # indent=4))
-    # print(json.dumps(conn.get_channels(conn.get_team_id('avo')), indent=4))
-    # print("GOT TEAM %s" % conn.get_team_id('avo'))
-    # print("GOT CHANNEL %s" % conn.get_channel_id(conn.get_team_id('avo'),
-    # "rs-processing-test"))
+    conn = Mattermost(retries=args.retries, timeout=args.timeout)
+
+    if args.command == 'post':
+        LOG.debug("Executing post")
+        message = sys.stdin.read()
+        if len(message) == 0:
+            sys.exit(1)
+
+        conn.post(message, file_paths=args.attachments)
