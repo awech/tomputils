@@ -100,10 +100,10 @@ class Mattermost(object):
         if server_url is not None:
             self.server_url = server_url
         elif 'MATTERMOST_SERVER_URL' in os.environ:
-                self.server_url = os.environ['MATTERMOST_SERVER_URL']
+            self.server_url = os.environ['MATTERMOST_SERVER_URL']
         else:
-                raise RuntimeError("Server URL must be provided in environment"
-                                   " or passed to the constructor.")
+            raise RuntimeError("Server URL must be provided in environment"
+                               " or passed to the constructor.")
         LOG.debug("Mattermost server URL: %s", self.server_url)
 
         if 'MATTERMOST_TEAM_ID' in os.environ:
@@ -119,10 +119,10 @@ class Mattermost(object):
         LOG.debug("Mattermost channel id: %s", self.channel_id)
 
         self.timeout = timeout
-        LOG.debug("timeout: {}".format(self.timeout))
+        LOG.debug("timeout: %s", self.timeout)
 
         self.retries = retries
-        LOG.debug("retries: {}".format(self.retries))
+        LOG.debug("retries: %s", self.retries)
 
         self._session = requests.Session()
         self._session.headers.update({"X-Requested-With": "XMLHttpRequest"})
@@ -182,7 +182,7 @@ class Mattermost(object):
             kwargs['timeout'] = self.timeout
 
         try:
-            LOG.debug("Attempting: {} {}".format(method, kwargs))
+            LOG.debug("Attempting: %s %s", method, kwargs)
             return method(url, **kwargs)
         except:
             if retries > 0:
@@ -307,7 +307,7 @@ class Mattermost(object):
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channels")
-        url = '%s/api/v3/teams/%s/channels/'.format(self.server_url,
+        url = '{}/api/v3/teams/{}/channels/'.format(self.server_url,
                                                     self.team_id)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
@@ -328,7 +328,7 @@ class Mattermost(object):
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channel_id")
-        channels = self.get_channels(self.team_id)
+        channels = self.get_channels()
         for channel in channels:
             if channel['name'] == channel_name:
                 return channel['id']
@@ -597,21 +597,19 @@ def format_span(start, end):
 
 def _arg_parse():
 
-    description = "Interact with a Mattermost server. Not all possible "
-    "combinations of arguments will make sense. Don't use those combinations "
-    "which do not make sense. The message to post, if any, will be read from "
-    "<STDIN>."
+    description = "Interact with a Mattermost server. Not all possible " \
+                  "combinations of arguments will make sense, avoid those. " \
+                  "The message to post, if any, will be read from <STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("command", choices=('post',), help="Command")
+    parser.add_argument("command", choices=('post', 'getteams'), help="Command")
     parser.add_argument("-a", "--attachments", action='append',
                         help="File to attach. Argument may be repeated to "
                              "attach multiple files.")
     parser.add_argument("-r", "--retries",
                         help="Maximum number of attemps to fulfill request",
                         type=int, default=DEFAULT_RETRIES)
-    parser.add_argument("-t", "--timeout",
-                        help="request timeout", type=int,
+    parser.add_argument("-t", "--timeout", help="request timeout", type=int,
                         default=DEFAULT_TIMEOUT)
     parser.add_argument("-v", "--verbose", help="Verbose logging",
                         action='store_true')
@@ -619,7 +617,11 @@ def _arg_parse():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def do_command():
+    """
+    Fulfill a command provided on the command line.
+
+    """
     logging.basicConfig()
     args = _arg_parse()
     if args.verbose is True:
@@ -634,3 +636,9 @@ if __name__ == '__main__':
             sys.exit(1)
 
         conn.post(message, file_paths=args.attachments)
+    elif args.command == 'getteams':
+        teams = conn.get_teams()
+        print(json.dumps(teams, indent=4))
+
+if __name__ == '__main__':
+    do_command()
