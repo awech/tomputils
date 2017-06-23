@@ -15,4 +15,4 @@ A simple Mattermost driver.
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 
-from mattermost import Mattermost, format_timedelta, format_span # noqa
+from tomutils.mattermost.mattermost import Mattermost, format_timedelta, format_span # noqa

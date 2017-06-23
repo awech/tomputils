@@ -22,7 +22,6 @@ from __future__ import (absolute_import, division, print_function,
 import json
 import logging
 import os
-
 from future.builtins import *  # NOQA
 
 import requests
@@ -130,6 +129,63 @@ class Mattermost(object):
 
         self._login()
 
+    def post(self, message, file_paths=None):
+        """
+        Post a message to mattermost.
+
+        Adapted from http://stackoverflow.com/questions/42305599/\
+        how-to-send-file-through-mattermost-incoming-webhook
+
+        Parameters
+        ----------
+        message : str
+            Message text to be posted.
+
+        file_paths : str or list of str, optional
+            Files to be attached to post.
+
+        Returns
+        -------
+        str
+            Mattermost ID of the post.
+
+        """
+        LOG.debug("Posting message to mattermost: %s", message)
+        post_data = {
+            'user_id': self._user_id,
+            'channel_id': self.channel_id,
+            'message': message,
+            'create_at': 0,
+        }
+
+        if file_paths is not None:
+            if not isinstance(file_paths, list):
+                file_paths = [file_paths]
+
+            file_count = len(file_paths)
+            if file_count > MAX_ATTACHMENTS:
+                raise RuntimeError("Matter most supports no more than %d "
+                                   "attachments per post, but %d attachemnts "
+                                   "provided." % (MAX_ATTACHMENTS, file_count))
+            file_ids = []
+            for file_path in file_paths:
+                LOG.debug("attaching file: %s", file_path)
+                file_ids.append(self.upload(file_path))
+            post_data['file_ids'] = file_ids
+
+        url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
+              % (self.server_url, self.team_id, self.channel_id)
+        response = self._request(self._session.post, url,
+                                 data=json.dumps(post_data))
+
+        if response.status_code == 200:
+            LOG.debug(response.content)
+            post_id = response.json()["id"]
+        else:
+            raise RuntimeError(response.content)
+
+        return post_id
+
     def team_name(self, team_name):
         """
         Set team ID given a name.
@@ -164,12 +220,12 @@ class Mattermost(object):
         ----------
         method : bound method
             Method used to make the request.
-        url : str
+        url : unicode or str
         retries : int, optional
 
         Returns
         -------
-        str
+        json
             Server response.
 
         """
@@ -379,63 +435,6 @@ class Mattermost(object):
 
         file_id = response.json()["file_infos"][0]["id"]
         return file_id
-
-    def post(self, message, file_paths=None):
-        """
-        Post a message to mattermost.
-
-        Adapted from http://stackoverflow.com/questions/42305599/\
-        how-to-send-file-through-mattermost-incoming-webhook
-
-        Parameters
-        ----------
-        message : str
-            Message text to be posted.
-
-        file_paths : str or list of str, optional
-            Files to be attached to post.
-
-        Returns
-        -------
-        str
-            Mattermost ID of the post.
-
-        """
-        LOG.debug("Posting message to mattermost: %s", message)
-        post_data = {
-            'user_id': self._user_id,
-            'channel_id': self.channel_id,
-            'message': message,
-            'create_at': 0,
-        }
-
-        if file_paths is not None:
-            if not isinstance(file_paths, list):
-                file_paths = [file_paths]
-
-            file_count = len(file_paths)
-            if file_count > MAX_ATTACHMENTS:
-                raise RuntimeError("Matter most supports no more than %d "
-                                   "attachments per post, but %d attachemnts "
-                                   "provided." % (MAX_ATTACHMENTS, file_count))
-            file_ids = []
-            for file_path in file_paths:
-                LOG.debug("attaching file: %s", file_path)
-                file_ids.append(self.upload(file_path))
-            post_data['file_ids'] = file_ids
-
-        url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
-              % (self.server_url, self.team_id, self.channel_id)
-        response = self._request(self._session.post, url,
-                                 data=json.dumps(post_data))
-
-        if response.status_code == 200:
-            LOG.debug(response.content)
-            post_id = response.json()["id"]
-        else:
-            raise RuntimeError(response.content)
-
-        return post_id
 
     def get_post(self, post_id):
         """
