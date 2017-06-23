@@ -645,10 +645,11 @@ def do_command():
     if args.command == 'post':
         LOG.debug("Executing post")
         message = sys.stdin.read()
-        if len(message) == 0:
+        if len(message) > 0:
+            conn.post(message, file_paths=args.attachments)
+        else:
+            LOG.error("I have no message to post.")
             sys.exit(1)
-
-        conn.post(message, file_paths=args.attachments)
     elif args.command == 'getteams':
         teams = conn.get_teams()
         print(json.dumps(teams, indent=4))
