@@ -20,8 +20,10 @@ import os
 import sys
 import sphinx_rtd_theme
 from mock import Mock as MagicMock
-from tomputils import __version__
+
 sys.path.insert(0, os.path.abspath('../..'))
+
+from tomputils import __version__  # noqa
 
 
 class Mock(MagicMock):
