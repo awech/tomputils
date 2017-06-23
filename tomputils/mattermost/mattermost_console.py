@@ -17,18 +17,15 @@ from __future__ import (absolute_import, division, print_function,
 import argparse
 import json
 import logging
-import os
 import sys
 
 from future.builtins import *  # NOQA
-
-import requests
-import logging
 
 from .mattermost import DEFAULT_RETRIES, DEFAULT_TIMEOUT
 from .mattermost import Mattermost
 
 LOG = logging.getLogger(__name__)
+
 
 def _arg_parse():
     description = "Interact with a Mattermost server. Not all possible " \

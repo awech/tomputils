@@ -19,11 +19,9 @@ Optional
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import argparse
 import json
 import logging
 import os
-import sys
 
 from future.builtins import *  # NOQA
 
@@ -593,5 +591,3 @@ def format_span(start, end):
     time_string += end.strftime('%H:%M:%S')
 
     return time_string
-
-
