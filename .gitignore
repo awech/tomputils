@@ -13,6 +13,7 @@
 .project
 .pydevproject
 /.settings
+/.eggs
 RELEASE-VERSION
 build/
 dist/

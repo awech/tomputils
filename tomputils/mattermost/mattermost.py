@@ -57,6 +57,8 @@ class Mattermost(object):
         Mattermost ID of the working team
     channel_id : str
         Mattermost ID of the working channel
+    server_url : str
+        URL of Mattermost server
 
     Examples
     --------
