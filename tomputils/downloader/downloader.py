@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Connection(object):
-    def __init__(self, req_url):
+    def __init__(self, req_url, can_segment):
         self.curl = pycurl.Curl()
         self.curl.setopt(pycurl.FOLLOWLOCATION, 1)
         self.curl.setopt(pycurl.MAXREDIRS, 5)
@@ -43,6 +43,7 @@ class Connection(object):
         self.curl.setopt(pycurl.NOSIGNAL, 1)
         self.curl.setopt(pycurl.WRITEFUNCTION, self.write_cb)
         self.curl.setopt(pycurl.URL, req_url)
+        self.can_segment = can_segment
         self.curl.connection = self
         self.total_downloaded = 0
         self.id = None
@@ -74,9 +75,10 @@ class Connection(object):
         self.segment = segment
 
     def prepare_retry(self):
-        self.curl.setopt(pycurl.RANGE, '%d-%d' % (self.segment[1] +
-                                                  self.segment_downloaded,
-                                                  self.segment[2]))
+        if self.can_segment:
+            self.curl.setopt(pycurl.RANGE, '%d-%d' % (self.segment[1] +
+                                                      self.segment_downloaded,
+                                                      self.segment[2]))
         if self.link_downloaded:
             self.link_downloaded = 0
         else:
@@ -86,8 +88,16 @@ class Connection(object):
         self.curl.close()
 
     def write_cb(self, buf):
-        if self.segment:
+        print("TOMP SAYS: %s" % self.segment)
+        if self.can_segment:
             self.out_file.seek(self.segment[1] + self.segment_downloaded, 0)
+            self.out_file.write(buf)
+            self.out_file.flush()
+            size = len(buf)
+            self.link_downloaded += size
+            self.segment_downloaded += size
+            self.total_downloaded += size
+        else:
             self.out_file.write(buf)
             self.out_file.flush()
             size = len(buf)
@@ -142,13 +152,14 @@ class Downloader(object):
 
         # allocate file space
         afile = open(output, str('wb'))
-        afile.truncate(size)
+        if size > 0:
+            afile.truncate(size)
         afile.close()
 
         out_file = open(output, str('r+b'))
         connections = []
         for i in range(len(segments)):
-            c = Connection(eurl)
+            c = Connection(eurl, can_segment)
             connections.append(c)
 
         con = {
@@ -188,7 +199,6 @@ class Downloader(object):
                     c.code = curl.getinfo(pycurl.RESPONSE_CODE)
 
                     if c.code in STATUS_OK:
-                        assert c.segment_downloaded == c.segment_size
                         LOG.info('%s: Download successed. (%d/%d)', c.name,
                                  c.segment_downloaded, c.segment_size)
                         con['free'].append(c)
@@ -310,6 +320,8 @@ def _check_headers(url):
     eurl = curl.getinfo(pycurl.EFFECTIVE_URL)
     size = int(curl.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD))
     can_segment = headers.getvalue().find('Accept-Ranges') != -1
+    if size < 1:
+        can_segment = False
 
     return (eurl, size, can_segment)
 
