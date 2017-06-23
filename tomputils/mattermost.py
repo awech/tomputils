@@ -615,8 +615,8 @@ def _arg_parse():
     help_text = "Mattermost team name. Will override MATTERMOST_TEAM_ID " \
                 + "environment variable."
     parser.add_argument("--team-name", help=help_text)
-    help_text = "Mattermost channel name. Will override MATTERMOST_CHANNEL_ID " \
-                "environment variable."
+    help_text = "Mattermost channel name. Will override " \
+                "MATTERMOST_CHANNEL_ID environment variable."
     parser.add_argument("--channel-name", help=help_text)
     parser.add_argument("-v", "--verbose", help="Verbose logging",
                         action='store_true')
@@ -647,7 +647,7 @@ def do_command():
         message = sys.stdin.read()
         if len(message) == 0:
             sys.exit(1)
-            
+
         conn.post(message, file_paths=args.attachments)
     elif args.command == 'getteams':
         teams = conn.get_teams()
