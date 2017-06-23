@@ -14,7 +14,6 @@ import logging
 import sys
 import os
 import time
-import traceback
 
 import pycurl
 from six import StringIO
@@ -32,6 +31,7 @@ DEFAULT_MAX_CON = 4
 DEFAULT_MAX_RETRY = 5
 
 LOG = logging.getLogger(__name__)
+
 
 class Connection(object):
     def __init__(self, req_url):
@@ -99,7 +99,7 @@ class Connection(object):
 class Downloader(object):
     """
     Download a file, possibly in segments.
-    
+
     Parameters
     ----------
     max_retry : int, optional
@@ -119,14 +119,14 @@ class Downloader(object):
     def fetch(self, req_url, output=None):
         """
         Fetch a file.
-        
+
         Parameters
         ----------
         req_url : str
             URL of the file to retrieve
         output : str, optional
             filename, possibly with path, of the downloaded file.
-            
+
         TODO: test can_segment == false
         """
 
@@ -135,7 +135,7 @@ class Downloader(object):
             output = os.path.split(eurl)[1]
 
         if len(output) < 1:
-            raise RuntimeError("Output file must be provided if URL points " \
+            raise RuntimeError("Output file must be provided if URL points "
                                "to a directory.")
         LOG.info('Downloading %s, (%d bytes)' % (output, size))
         segments = self._get_segments(size, can_segment)
@@ -282,7 +282,7 @@ def _check_headers(url):
     ----------
     url : str
         URL of the file to be retrieved.
-        
+
     Returns
     -------
     (str, str, str)
