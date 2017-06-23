@@ -27,9 +27,9 @@ if os.name == 'posix':
 
 STATUS_OK = (200, 203, 206)
 STATUS_ERROR = range(400, 600)
-MIN_SEG_SIZE = 16 * 1024
-MAX_CON = 4
-MAX_RETRY = 5
+DEFAULT_MIN_SEG_SIZE = 16 * 1024
+DEFAULT_MAX_CON = 4
+DEFAULT_MAX_RETRY = 5
 
 
 class Connection(object):
@@ -96,8 +96,8 @@ class Connection(object):
 
 
 class Downloader(object):
-    def __init__(self, max_retry=MAX_RETRY, min_seg_size=MIN_SEG_SIZE,
-                 max_con=MAX_CON):
+    def __init__(self, max_retry=DEFAULT_MAX_RETRY,
+                 min_seg_size=DEFAULT_MIN_SEG_SIZE, max_con=DEFAULT_MAX_CON):
         self.min_seg_size = min_seg_size
         self.max_retry = max_retry
         self.max_con = max_con
@@ -111,7 +111,7 @@ class Downloader(object):
         """
 
         headers = StringIO()
-        response = req_headers(req_url, headers)
+        response = _req_headers(req_url, headers)
         if response(pycurl.RESPONSE_CODE) not in STATUS_OK:
             print("Cannot retrieve headers for %s. Aborting." % req_url)
             return
@@ -168,18 +168,18 @@ class Downloader(object):
                     for curl in ok_list:
                         curl.errno = pycurl.E_OK
                         curl.errmsg = None
-                        self.process_result(mcurl, curl, con, segments)
+                        self.process_good_result(mcurl, curl, con, segments)
                     for curl, errno, errmsg in err_list:
                         curl.errno = errno
                         curl.errmsg = errmsg
-                        self.process_result(mcurl, curl, con, segments)
+                        self.process_bad_result(mcurl, curl, con)
                     if num_q == 0:
                         break
 
                 elapsed = time.time() - start_time
                 downloaded = sum([connection.total_downloaded for connection in
                                   connections])
-                show_progress(size, downloaded, elapsed)
+                _show_progress(size, downloaded, elapsed)
 
                 if not con['working']:
                     break
@@ -201,47 +201,87 @@ class Downloader(object):
         print(msg)
         # logging.info(msg)
 
-    def process_result(self, mcurl, curl, con, segments):
+    def process_good_result(self, mcurl, curl, con, segments):
+        """
+        Hande the result of a mcurl call.
+
+        Parameters
+        ----------
+        mcurl :
+        curl :
+        con :
+        segments :
+
+        """
         mcurl.remove_handle(curl)
         c = curl.connection
         c.errno = curl.errno
         c.errmsg = curl.errmsg
         con['working'].remove(c)
-        if c.errno == pycurl.E_OK:
-            c.code = curl.getinfo(pycurl.RESPONSE_CODE)
-            if c.code in STATUS_OK:
-                assert c.segment_downloaded == c.segment_size
-                print('%s: Download successed' % c.name)
-                print('%s:Download %s out of %d' % (c.name,
-                                                    c.segment_downloaded,
-                                                    c.segment_size))
-                con['free'].append(c)
-            elif c.code in STATUS_ERROR:
-                print('%s:Error < %d >! Connection will be closed' % (c.name,
-                                                                      c.code))
-                segments.append(c.segment)
-                new_c = Connection(c.getopt(pycurl.URL))
-                con['connections'].append(new_c)
-                con['free'].append(new_c)
+        c.code = curl.getinfo(pycurl.RESPONSE_CODE)
+        if c.code in STATUS_OK:
+            assert c.segment_downloaded == c.segment_size
+            print('%s: Download successed' % c.name)
+            print('%s:Download %s out of %d' % (c.name,
+                                                c.segment_downloaded,
+                                                c.segment_size))
+            con['free'].append(c)
+        elif c.code in STATUS_ERROR:
+            print('%s:Error < %d >! Connection will be closed' % (c.name,
+                                                                  c.code))
+            segments.append(c.segment)
+            new_c = Connection(c.getopt(pycurl.URL))
+            con['connections'].append(new_c)
+            con['free'].append(new_c)
 
-                c.close()
-                con['connections'].remove(c)
-            else:
-                raise Exception(
-                    '%s: Unhandled http status code %d' % (c.name, c.code))
+            c.close()
+            con['connections'].remove(c)
         else:
-            print('%s:Download failed < %s >' % (c.name, c.errmsg))
-            if c.can_segment and c.retried < self.max_retry:
-                c.prepare_retry()
-                con['working'].append(c)
-                mcurl.add_handle(c.curl)
-                print('%s:Try again' % c.name)
-            else:
-                raise Exception("%s" % c.errmsg)
+            raise Exception(
+                '%s: Unhandled http status code %d' % (c.name, c.code))
 
-    def get_segments(self, size, can_segment):
-        file_size = size
-        # segments = None
+    def process_bad_result(self, mcurl, curl, con):
+        """
+        Hande the result of a mcurl call.
+
+        Parameters
+        ----------
+        mcurl :
+        curl :
+        con :
+
+        """
+        mcurl.remove_handle(curl)
+        c = curl.connection
+        c.errno = curl.errno
+        c.errmsg = curl.errmsg
+        con['working'].remove(c)
+        print('%s:Download failed < %s >' % (c.name, c.errmsg))
+        if c.can_segment and c.retried < self.max_retry:
+            c.prepare_retry()
+            con['working'].append(c)
+            mcurl.add_handle(c.curl)
+            print('%s:Try again' % c.name)
+        else:
+            raise Exception("%s" % c.errmsg)
+
+    def get_segments(self, file_size, can_segment):
+        """
+        Calculate segements to request.
+
+        Parameters
+        ----------
+        file_size : int
+            Lenght of file in bytes.
+        can_segment: : bool
+            If true, remote server supports segmented downloads.
+
+        Returns
+        -------
+        bytearray
+            A two-dimensional array of segments to download.
+
+        """
         if can_segment:
             num = self.max_con
             while num * self.min_seg_size > file_size and num > 1:
@@ -255,7 +295,7 @@ class Downloader(object):
         return segments
 
 
-def req_headers(req_url, headers):
+def _req_headers(req_url, headers):
     curl = pycurl.Curl()
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
     curl.setopt(pycurl.MAXREDIRS, 5)
@@ -274,7 +314,7 @@ def req_headers(req_url, headers):
         return curl.getinfo
 
 
-def show_progress(size, downloaded, elapsed):
+def _show_progress(size, downloaded, elapsed):
     percent = min(100, downloaded * 100 / size)
     if elapsed == 0:
         rate = 0
@@ -294,13 +334,13 @@ def show_progress(size, downloaded, elapsed):
 
 
 def fetch(req_url):
+    """
+    Fetch a single URL using default settings.
+
+    Parameters
+    ----------
+    req_url : unicode or str
+        URL to request. File will be written to teh current working directory.
+    """
     dl = Downloader()
     dl.fetch(req_url)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        for url in sys.argv[1:]:
-            fetch(url)
-    else:
-        print("I need a URL")

@@ -34,7 +34,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mattermost = tomputils.mattermost.mattermost_console:do_command'
+            'mattermost = tomputils.mattermost.mattermost_console:do_command',
+            'downloader = tomputils.downloader.downloader_console:do_command'
         ]
     }
 )
