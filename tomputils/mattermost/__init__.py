@@ -17,4 +17,4 @@ A simple Mattermost driver.
 
 from mattermost import Mattermost, format_timedelta, format_span
 
-__all__ = ['Mattermost', 'format_timedelta', 'format_span']
+__all__ = ['format_timedelta', 'format_span', 'Mattermost']
