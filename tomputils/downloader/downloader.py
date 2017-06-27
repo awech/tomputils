@@ -333,7 +333,7 @@ def _show_progress(size, downloaded, elapsed):
     sys.stdout.write('\b' * 82)
 
 
-def fetch(req_url):
+def fetch(req_url, output=None):
     """
     Fetch a single URL using default settings.
 
@@ -343,4 +343,4 @@ def fetch(req_url):
         URL to request. File will be written to teh current working directory.
     """
     dl = Downloader()
-    dl.fetch(req_url)
+    dl.fetch(req_url, output)
