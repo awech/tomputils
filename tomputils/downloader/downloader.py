@@ -332,17 +332,17 @@ def _show_progress(size, downloaded, elapsed):
         rate = 0
     else:
         rate = downloaded * 1.0 / 1024.0 / elapsed
-    info = ' D / L:%d / %d ( % 6.2f%%) - Avg:%4.1fkB / s' % (downloaded,
-                                                             size,
-                                                             percent, rate)
-    space = ' ' * (60 - len(info))
+        info = ' D / L:%d / %d ( % 6.2f%%) - Avg:%4.1fkB / s' % (downloaded,
+                                                                 size,
+                                                                 percent, rate)
+        space = ' ' * (60 - len(info))
 
-    prog_len = int(percent * 20 / 100)
-    prog = '|' + 'o' * prog_len + '.' * (20 - prog_len) + '|'
+        prog_len = int(percent * 20 / 100)
+        prog = '|' + 'o' * prog_len + '.' * (20 - prog_len) + '|'
 
-    sys.stdout.write(info + space + prog)
-    sys.stdout.flush()
-    sys.stdout.write('\b' * 82)
+        sys.stdout.write(info + space + prog)
+        sys.stdout.flush()
+        sys.stdout.write('\b' * 82)
 
 
 def fetch(req_url, output=None):
