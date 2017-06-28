@@ -88,7 +88,6 @@ class Connection(object):
         self.curl.close()
 
     def write_cb(self, buf):
-        print("TOMP SAYS: %s" % self.segment)
         if self.can_segment:
             self.out_file.seek(self.segment[1] + self.segment_downloaded, 0)
             self.out_file.write(buf)
@@ -327,10 +326,11 @@ def _check_headers(url):
 
 
 def _show_progress(size, downloaded, elapsed):
+    if not sys.stdout.isatty():
+        return
+    
     percent = min(100, downloaded * 100 / size)
-    if elapsed == 0:
-        rate = 0
-    else:
+    if elapsed != 0:
         rate = downloaded * 1.0 / 1024.0 / elapsed
         info = ' D / L:%d / %d ( % 6.2f%%) - Avg:%4.1fkB / s' % (downloaded,
                                                                  size,
