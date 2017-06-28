@@ -328,7 +328,7 @@ def _check_headers(url):
 def _show_progress(size, downloaded, elapsed):
     if not sys.stdout.isatty():
         return
-    
+
     percent = min(100, downloaded * 100 / size)
     if elapsed != 0:
         rate = downloaded * 1.0 / 1024.0 / elapsed
