@@ -1,6 +1,5 @@
 #!/bin/bash
 
-WHO=tparker@usgs.gov
 VERBOSE=0
 
 
@@ -46,10 +45,12 @@ fi
 PID=`echo $OUT | awk '{print$3}' | sed -e 's/:$//'`
 if [ "$(uname)" == "Darwin" ]; then
     T=`ps -p $PID -o etime=`
-    TIME=`echo $T | awk -F'[-:]' '{if (NF > 1) { t=$(NF) + $(NF-1) * 60; \
-                                                if (NF > 2) { t += $(NF-2) * 3600 } \
-                                                if (NF > 3) { t += $(NF-3) * 86400 } \
-                                                print t}}'`
+    TIME=`echo $T | awk -F'[-:]' '{ if (NF > 1) { \
+                                      t=$(NF) + $(NF-1) * 60; \
+                                      if (NF > 2) { t += $(NF-2) * 3600 } \
+                                      if (NF > 3) { t += $(NF-3) * 86400 } \
+                                      print t} \
+                                  }'`
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     TIME=`ps -p $PID -o etimes= | xargs`
 else
@@ -74,6 +75,5 @@ if [ $VERBOSE = 1 ]; then
 fi
 
 if [ X$MAILTO != X ]; then
-    echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $WHO
+    echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $MAILTO
 fi
-
