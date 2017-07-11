@@ -32,6 +32,7 @@ setup(
         ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    scripts=['bin/singleTimeout.sh'],
     entry_points={
         'console_scripts': [
             'mattermost = tomputils.mattermost.mattermost_console:do_command',
