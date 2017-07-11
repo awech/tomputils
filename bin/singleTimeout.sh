@@ -2,6 +2,13 @@
 
 WHO=tparker@usgs.gov
 VERBOSE=0
+
+
+convert_mac() {
+   echo 2-01:11:18 | awk -F'[-:]' '{if (NF > 1) {t=$(NF) + $(NF-1) * 60; if (NF > 2) { t += $(NF-2) * 3600 } if (NF > 3) { t += $(NF-3) * 86400 } print t}}'
+}
+
+# check command line
 while getopts t:c:f:v opt; do
     case $opt in
         t)  
@@ -38,7 +45,18 @@ if [ $? = 0 ]; then
 fi
 
 PID=`echo $OUT | awk '{print$3}' | sed -e 's/:$//'`
-TIME=`ps -p $PID -o etimes= | xargs`
+if [ "$(uname)" == "Darwin" ]; then
+    T=`ps -p $PID -o etime=`
+    TIME=`echo $T | awk -F'[-:]' '{if (NF > 1) { t=$(NF) + $(NF-1) * 60; \
+                                                if (NF > 2) { t += $(NF-2) * 3600 } \
+                                                if (NF > 3) { t += $(NF-3) * 86400 } \
+                                                print t}}'`
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    TIME=`ps -p $PID -o etimes= | xargs`
+else
+    echo "I've only been tested on Mac and Linux. Sorry, I don't know what to do with $(uname)"
+    exit 1
+fi
 
 # not stale exit
 if (( $TIME < $TIMEOUT )) ; then
