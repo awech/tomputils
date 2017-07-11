@@ -4,18 +4,17 @@ WHO=tparker@usgs.gov
 VERBOSE=0
 
 
-convert_mac() {
-   echo 2-01:11:18 | awk -F'[-:]' '{if (NF > 1) {t=$(NF) + $(NF-1) * 60; if (NF > 2) { t += $(NF-2) * 3600 } if (NF > 3) { t += $(NF-3) * 86400 } print t}}'
-}
-
 # check command line
-while getopts t:c:f:v opt; do
+while getopts t:c:f:m:v opt; do
     case $opt in
         t)  
             TIMEOUT=$OPTARG
             ;;
         c)  
             COMMAND=$OPTARG
+            ;;
+        m)  
+            MAILTO=$OPTARG
             ;;
         f)  
             LOCKFILE=$OPTARG
@@ -26,7 +25,7 @@ while getopts t:c:f:v opt; do
 done
 
 if [  "X$TIMEOUT" = X -o "X$COMMAND" = X ]; then
-    echo "Usage: $0 -t <timeout in seconds> -c <command> [ -f <lockfile> ]"
+    echo "Usage: $0 -t <timeout in seconds> -c <command> [ -f <lockfile> ] [ -m <email addr>] [-v]"
     exit 1
 fi
 
@@ -73,5 +72,8 @@ kill -9 $PID
 if [ $VERBOSE = 1 ]; then
     echo -e $OUT_MSG
 fi
-echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $WHO
+
+if [ X$MAILTO != X ]; then
+    echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $WHO
+fi
 
