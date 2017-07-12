@@ -4,13 +4,16 @@ VERBOSE=0
 
 
 # check command line
-while getopts t:c:f:m:v opt; do
+while getopts t:c:f:m:gv opt; do
     case $opt in
         t)  
             TIMEOUT=$OPTARG
             ;;
         c)  
             COMMAND=$OPTARG
+            ;;
+        g)  
+            KILL_GROUP=1
             ;;
         m)  
             MAILTO=$OPTARG
@@ -24,7 +27,7 @@ while getopts t:c:f:m:v opt; do
 done
 
 if [  "X$TIMEOUT" = X -o "X$COMMAND" = X ]; then
-    echo "Usage: $0 -t <timeout in seconds> -c <command> [ -f <lockfile> ] [ -m <email addr>] [-v]"
+    echo "Usage: $0 -t <timeout in seconds> -c <command> [ -f <lockfile> ] [ -m <email addr>] [-g] [-v]"
     exit 1
 fi
 
@@ -68,7 +71,12 @@ fi
 
 OUT_MSG="Command running too long, killing it. ($TIME > $TIMEOUT)\n"
 OUT_MSG+=`ps -fp $PID | sed -e 's/$/\\n/'`
-kill -9 $PID
+
+if [ $KILL_GROUP = 1 ]; then
+    kill -9 -$PID
+else
+    kill -9 $PID
+fi
 
 if [ $VERBOSE = 1 ]; then
     echo -e $OUT_MSG
