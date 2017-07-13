@@ -50,7 +50,7 @@ OUT=`single.py --status $LOCKFILEARG -c $COMMAND`
 
 # not locked, exit
 if [ $? = 0 ]; then
-    if [ $VERBOSE = 1 ]; then
+    if [ X$VERBOSE != X ]; then
         echo "Process not running"
     fi
     exit 0
