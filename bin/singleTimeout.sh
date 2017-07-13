@@ -1,8 +1,5 @@
 #!/bin/bash
 
-VERBOSE=0
-
-
 # check command line
 while getopts t:c:f:m:gv opt; do
     case $opt in
@@ -27,7 +24,21 @@ while getopts t:c:f:m:gv opt; do
 done
 
 if [  "X$TIMEOUT" = X -o "X$COMMAND" = X ]; then
-    echo "Usage: $0 -t <timeout in seconds> -c <command> [ -f <lockfile> ] [ -m <email addr>] [-g] [-v]"
+    cat <<EoF
+Usage: $0 [-g] [-v]  -t <timeout in seconds> [ -m <email addr>] [ -f <lockfile> ] -c <command>"
+
+Kill a long-running job started with single.py.
+
+required arguments:
+  -c COMMAND              Command as passed to single.py
+  -t TIMEOUT              Time, in seconds, job is allowed to run
+
+optional arguments:
+  -f LOCKFILE             Path to the lock file. Default is provided based on the command path if omitted
+  -m ADDRESS              Address to email when a job is killed
+  -g                      Kill job by group id rather than process id
+  -v                      Print more stuff
+EoF
     exit 1
 fi
 
@@ -63,24 +74,25 @@ fi
 
 # not stale exit
 if (( $TIME < $TIMEOUT )) ; then
-    if [ $VERBOSE = 1 ]; then
+    if [ X$VERBOSE != X ]; then
         echo "Process not stale. ($TIME < $TIMEOUT)"
     fi
     exit 0
 fi
 
-OUT_MSG="Command running too long, killing it. ($TIME > $TIMEOUT)\n"
-OUT_MSG+=`ps -fp $PID | sed -e 's/$/\\n/'`
-
+OUT_MSG="Command running too long, killing it. ($TIME > $TIMEOUT)"
+if [ $VERBOSE = 1 ]; then
+    echo $OUT_MSG
+    echo `ps -fp $PID | sed -e 's/$/\\n/'`
+fi
 if [ $KILL_GROUP = 1 ]; then
-    kill -9 -$PID
+    GPID=`ps  -o  "pgid=" -p $PID`
+    kill -9 -$GPID
 else
     kill -9 $PID
 fi
 
-if [ $VERBOSE = 1 ]; then
-    echo -e $OUT_MSG
-fi
+
 
 if [ X$MAILTO != X ]; then
     echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $MAILTO

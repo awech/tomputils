@@ -9,11 +9,13 @@ tomputils
 A collection of utility modues I find useful.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    mattermost
    downloader
+
+   scripts
 
 Indices and tables
 ==================
