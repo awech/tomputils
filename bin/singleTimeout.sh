@@ -81,8 +81,8 @@ if (( $TIME < $TIMEOUT )) ; then
 fi
 
 OUT_MSG="Command running too long, killing it. ($TIME > $TIMEOUT)"
+echo $OUT_MSG
 if [ $VERBOSE = 1 ]; then
-    echo $OUT_MSG
     echo `ps -fp $PID | sed -e 's/$/\\n/'`
 fi
 if [ $KILL_GROUP = 1 ]; then
