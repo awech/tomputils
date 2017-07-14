@@ -95,8 +95,8 @@ else
     kill -9 $PID
 fi
 
-if [ X$LOCKFILEARG != X ]; then
-    rm $LOCKFILEARG
+if [ X$LOCKFILE != X ]; then
+    rm $LOCKFILE
 fi
 
 if [ X$MAILTO != X ]; then
