@@ -34,7 +34,10 @@ required arguments:
   -t TIMEOUT              Time, in seconds, job is allowed to run
 
 optional arguments:
-  -f LOCKFILE             Path to the lock file. Default is provided based on the command path if omitted
+  -f LOCKFILE             Path to the lock file. If not specified, use the
+                          default. If a lockfile is provided and the job has
+                          been running too long, I will attempt to remove the
+                          lockfile after killing the job.
   -m ADDRESS              Address to email when a job is killed
   -g                      Kill job by group id rather than process id
   -v                      Print more stuff
@@ -92,7 +95,9 @@ else
     kill -9 $PID
 fi
 
-
+if [ X$LOCKFILEARG != X ]; then
+    rm $LOCKFILEARG
+fi
 
 if [ X$MAILTO != X ]; then
     echo -e $OUT_MSG | mailx -s "stale proc: $COMMAND" $MAILTO
