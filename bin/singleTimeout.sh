@@ -85,10 +85,10 @@ fi
 
 OUT_MSG="Command running too long, killing it. ($TIME > $TIMEOUT)"
 echo $OUT_MSG
-if [ $VERBOSE = 1 ]; then
+if [ X$VERBOSE != X ]; then
     echo `ps -fp $PID | sed -e 's/$/\\n/'`
 fi
-if [ $KILL_GROUP = 1 ]; then
+if [ X$KILL_GROUP != X ]; then
     GPID=`ps  -o  "pgid=" -p $PID`
     kill -9 -$GPID
 else
