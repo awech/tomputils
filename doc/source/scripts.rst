@@ -75,8 +75,10 @@ Kill a job started with single.py if it has been running too long. Usage::
       -t TIMEOUT              Time, in seconds, job is allowed to run
 
     optional arguments:
-      -f LOCKFILE             Path to the lock file. Default is provided based on the command path if omitted
+      -f LOCKFILE             Path to the lock file. If not specified, use the
+                              default. If a lockfile is provided and the job has
+                              been running too long, I will attempt to remove the
+                              lockfile after killing the job.
       -m ADDRESS              Address to email when a job is killed
       -g                      Kill job by group id rather than process id
       -v                      Print more stuff
-
