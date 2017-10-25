@@ -268,7 +268,6 @@ class Mattermost(object):
                                  'password': self._user_pass})
         LOG.debug("Sending: %s", login_data)
         response = self._request(self._session.post, url, data=login_data)
-        print("TOMP SAYS: ", response)
         LOG.debug("Received: %s", response.json())
 
         if response.status_code != 200:
