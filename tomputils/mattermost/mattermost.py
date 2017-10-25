@@ -15,6 +15,7 @@ Optional
     * MATTERMOST_SERVER_URL=https://chat.example.com
     * MATTERMOST_TEAM_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
     * MATTERMOST_CHANNEL_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+    * SSL_CA=/path/to/cert
 
 """
 from __future__ import (absolute_import, division, print_function,
@@ -125,9 +126,9 @@ class Mattermost(object):
 
         self._session = requests.Session()
         self._session.headers.update({"X-Requested-With": "XMLHttpRequest"})
-        if 'SSL_CA' in os.environ:
-            LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
-            self._session.verify = os.environ['SSL_CA']
+        # if 'SSL_CA' in os.environ:
+        #     LOG.debug("Using SSL key %s", os.environ['SSL_CA'])
+        #     self._session.verify = os.environ['SSL_CA']
 
         self._login()
 
@@ -239,7 +240,15 @@ class Mattermost(object):
 
         try:
             LOG.debug("Attempting: %s %s", method, kwargs)
-            return method(url, **kwargs)
+            if 'SSL_CA' in os.environ:
+                return method(url, verify=os.environ['SSL_CA'], **kwargs)
+        except SSLError:
+            if 'SSL_CA' in os.environ:
+                LOG.info("SSL verification failed, attempting with default certs.")
+                return method(url, **kwargs)
+            else:
+                LOG.error("SSL verification failed.")
+                raise
         except:
             if retries > 0:
                 self._request(method, url, retries=retries-1, **kwargs)
