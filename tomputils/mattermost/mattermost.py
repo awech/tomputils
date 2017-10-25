@@ -236,9 +236,6 @@ class Mattermost(object):
         if retries is None:
             retries = self.retries
 
-        if 'timeout' not in kwargs:
-            timeout = self.timeout
-
         try:
             LOG.debug("Attempting: %s %s", method, kwargs)
             if 'SSL_CA' in os.environ:
@@ -247,7 +244,7 @@ class Mattermost(object):
                 return method(url, **kwargs)
         except (requests.exceptions.SSLError, OpenSSL.SSL.Error):
             if 'SSL_CA' in os.environ:
-                LOG.info("SSL verification failed, attempting with default certs.")
+                LOG.info("SSL verification failed, trying default certs.")
                 return method(url, **kwargs)
             else:
                 LOG.error("SSL verification failed.")
