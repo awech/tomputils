@@ -249,7 +249,7 @@ class Mattermost(object):
             else:
                 LOG.error("SSL verification failed.")
                 raise
-        except:
+        except Exception:
             if retries > 0:
                 self._request(method, url, retries=retries-1, **kwargs)
             else:
