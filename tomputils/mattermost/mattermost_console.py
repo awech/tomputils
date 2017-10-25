@@ -65,7 +65,7 @@ def do_command():
     logging.basicConfig()
     args = _arg_parse()
     if args.verbose is True:
-        LOG.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     conn = Mattermost(retries=args.retries, timeout=args.timeout)
     if args.team_name is not None:
