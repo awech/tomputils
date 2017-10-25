@@ -26,7 +26,8 @@ import os
 from future.builtins import *  # NOQA
 
 import requests
-
+import requests.exceptions
+import OpenSSL.SSL
 
 LOG = logging.getLogger(__name__)
 MAX_ATTACHMENTS = 5
@@ -236,13 +237,15 @@ class Mattermost(object):
             retries = self.retries
 
         if 'timeout' not in kwargs:
-            kwargs['timeout'] = self.timeout
+            timeout = self.timeout
 
         try:
             LOG.debug("Attempting: %s %s", method, kwargs)
             if 'SSL_CA' in os.environ:
                 return method(url, verify=os.environ['SSL_CA'], **kwargs)
-        except SSLError:
+            else:
+                return method(url, **kwargs)
+        except (requests.exceptions.SSLError, OpenSSL.SSL.Error):
             if 'SSL_CA' in os.environ:
                 LOG.info("SSL verification failed, attempting with default certs.")
                 return method(url, **kwargs)
@@ -265,6 +268,7 @@ class Mattermost(object):
                                  'password': self._user_pass})
         LOG.debug("Sending: %s", login_data)
         response = self._request(self._session.post, url, data=login_data)
+        print("TOMP SAYS: ", response)
         LOG.debug("Received: %s", response.json())
 
         if response.status_code != 200:
