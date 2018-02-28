@@ -10,8 +10,6 @@ import re
 
 import pika
 
-from tomputils.message.type import Alarm
-
 class Listener(object):
     def __init__(self, queue):
         self.queue = queue
