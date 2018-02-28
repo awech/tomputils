@@ -16,8 +16,8 @@ Required:
 
 from multiprocessing import Process, Queue
 
-from tomputils.message.alarmlogger.listener import Listener
-from tomputils.message.alarmlogger.shipper import ship
+from tomputils.message.messsagelogger.listener import Listener
+from tomputils.message.messsagelogger.shipper import ship
 
 q = Queue()
 

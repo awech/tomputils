@@ -36,8 +36,7 @@ class Listener(object):
     def _callback(self, ch, method, properties, body):
         print("ROUTING KEY", method.routing_key)
         print("Message", body)
-        alarm = Alarm()
-        alarm.ParseFromString(body)
+        print("Length",len(body), struct.pack("<I", len(body)))
 
         now = datetime.now()
         file_path = now.strftime("out/%Y/%m/%d")
@@ -49,7 +48,6 @@ class Listener(object):
         suffix = now.strftime("%Y%m%d.pb2")
         filename = "{}/{}_{}".format(file_path, method.routing_key, suffix)
         with open(filename, 'ab') as f:
-            msg_str = alarm.SerializeToString()
-            f.write(struct.pack("<I", len(msg_str)))
-            f.write(msg_str)
+            f.write(struct.pack("<I", len(body)))
+            f.write(body)
             self.queue.put(filename)

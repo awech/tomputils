@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 """
-Ship messages to avosouth
+Ship messages to server
 """
 from datetime import datetime, timedelta
 from io import StringIO
@@ -34,7 +34,7 @@ def ship(queue):
 
 def mkdir_p(sftp, remote_directory):
     """Change to this directory, recursively making new folders if needed.
-    Returns True if any folders were created. Taken from:
+    Returns True if any folders were created. Adapted from:
     https://stackoverflow.com/questions/14819681/#14819803
     """
     if remote_directory == '/':
