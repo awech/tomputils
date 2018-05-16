@@ -28,7 +28,8 @@ setup(
     install_requires=[
         'requests',
         'future',
-        'pycurl'
+        'pycurl',
+        'pyOpenSSL'
         ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
