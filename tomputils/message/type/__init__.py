@@ -15,4 +15,3 @@ Known types of protobuf messages
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 __version__ = "0.0.1"
-

@@ -3,12 +3,11 @@
 Receive messages from broker.
 """
 from datetime import datetime
-import json
 import os
 import struct
-import re
 
 import pika
+
 
 class Listener(object):
     def __init__(self, queue):
@@ -16,7 +15,8 @@ class Listener(object):
 
     def listen(self):
         exchange = os.environ['AVOBROKER_EXCHANGE']
-        mycred=pika.credentials.PlainCredentials(os.environ['AVOBROKER_USER'],
+        mycred = pika.credentials.PlainCredentials(
+            os.environ['AVOBROKER_USER'],
             os.environ['AVOBROKER_PASS'])
 
         connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -25,7 +25,8 @@ class Listener(object):
         channel.exchange_declare(exchange=exchange, exchange_type='topic')
         result = channel.queue_declare(exclusive=True)
         queue_name = result.method.queue
-        channel.queue_bind(exchange=exchange, queue=queue_name, routing_key="#")
+        channel.queue_bind(exchange=exchange, queue=queue_name,
+                           routing_key="#")
 
         print(' [*] Waiting for logs. To exit press CTRL+C')
         channel.basic_consume(self._callback, queue=queue_name, no_ack=True)
@@ -34,7 +35,7 @@ class Listener(object):
     def _callback(self, ch, method, properties, body):
         print("ROUTING KEY", method.routing_key)
         print("Message", body)
-        print("Length",len(body), struct.pack("<I", len(body)))
+        print("Length", len(body), struct.pack("<I", len(body)))
 
         now = datetime.now()
         file_path = now.strftime("out/%Y/%m/%d")
