@@ -1,7 +1,6 @@
-sphinx
-sphinx_rtd_theme
-numpydoc
-future
-pika
-six
-pyOpenSSL
+# https://caremad.io/posts/2013/07/setup-vs-requirement/
+
+--index-url https://pypi.python.org/simple/
+
+-e .
+
