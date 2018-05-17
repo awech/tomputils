@@ -14,6 +14,7 @@ A collection of utility modues I find useful.
 
    mattermost
    downloader
+   message
 
    scripts
 
