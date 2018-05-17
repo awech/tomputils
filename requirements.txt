@@ -1,6 +1,9 @@
 # https://caremad.io/posts/2013/07/setup-vs-requirement/
 
---index-url https://pypi.python.org/simple/
+#--index-url https://pypi.python.org/simple/
 
--e .
+#-e .
+
+requests
+future
 
