@@ -28,6 +28,7 @@ setup(
     install_requires=[
         'requests',
         'future',
+        'pika',
         'pycurl',
         'pyOpenSSL'
         ],
