@@ -14,7 +14,3 @@ Interface with a RabbitMQ message broker.
     CC0 1.0 Universal
     http://creativecommons.org/publicdomain/zero/1.0/
 """
-
-from alarm_pb2 import Alarm
-
-__all__ = ['Alarm']
