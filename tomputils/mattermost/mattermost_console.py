@@ -34,8 +34,8 @@ def _arg_parse():
                   "will be read from <STDIN>."
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("command", choices=('post', 'getteams', 'getchannels'),
-                        help="Command")
+    parser.add_argument("command", choices=('post', 'getteams', 'getchannels',
+                                            'getposts'), help="Command")
     parser.add_argument("-a", "--attachments", action='append',
                         help="File to attach. Argument may be repeated to "
                              "attach multiple files.")
@@ -83,11 +83,11 @@ def do_command():
             LOG.error("I have no message to post.")
             sys.exit(1)
     elif args.command == 'getteams':
-        teams = conn.get_teams()
-        print(json.dumps(teams, indent=4))
+        print(json.dumps(conn.get_teams(), indent=4))
     elif args.command == 'getchannels':
-        channels = conn.get_channels()
-        print(json.dumps(channels, indent=4))
+        print(json.dumps(conn.get_channels(), indent=4))
+    elif args.command == 'getposts':
+        print(json.dumps(conn.get_posts(), indent=4))
 
 
 if __name__ == '__main__':

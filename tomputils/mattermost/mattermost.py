@@ -3,7 +3,7 @@
 Interact with a Mattermost server.
 
 This modules ineracts with a `Mattermost <http://mattermost.com/>`_ server
-using `Mattermost API V3 <https://api.mattermost.com/>`_. It will look to the
+using `Mattermost API V4 <https://api.mattermost.com/>`_. It will look to the
 environment for configuration, expecting to see the following environment
 variables:
 
@@ -68,8 +68,8 @@ class Mattermost(object):
     >>> import tomputils.mattermost as mm
     >>> conn = mm.Mattermost()
     >>> print(json.dumps(conn.get_teams(), indent=4))
-    {
-        "39ou1iab7pnom39ou1iab7pnom": {
+    [
+        {
             "allowed_domains": "",
             "display_name": "AVO",
             "name": "avo",
@@ -84,7 +84,7 @@ class Mattermost(object):
             "id": "39ou1iab7pnom39ou1iab7pnom",
             "description": ""
         }
-    }
+    ]
     >>>
 
     """
@@ -156,10 +156,8 @@ class Mattermost(object):
         """
         LOG.debug("Posting message to mattermost: %s", message)
         post_data = {
-            'user_id': self._user_id,
             'channel_id': self.channel_id,
             'message': message,
-            'create_at': 0,
         }
 
         if file_paths is not None:
@@ -177,12 +175,11 @@ class Mattermost(object):
                 file_ids.append(self.upload(file_path))
             post_data['file_ids'] = file_ids
 
-        url = '%s/api/v3/teams/%s/channels/%s/posts/create' \
-              % (self.server_url, self.team_id, self.channel_id)
+        url = '%s/api/v4/posts' % self.server_url
         response = self._request(self._session.post, url,
                                  data=json.dumps(post_data))
 
-        if response.status_code == 200:
+        if response.status_code == 201:
             LOG.debug(response.content)
             post_id = response.json()["id"]
         else:
@@ -260,7 +257,7 @@ class Mattermost(object):
         Authenticate with the server.
 
         """
-        url = self.server_url + '/api/v3/users/login'
+        url = self.server_url + '/api/v4/users/login'
         login_data = json.dumps({'login_id': self._user_id,
                                  'password': self._user_pass})
         LOG.debug("Sending: %s", login_data)
@@ -286,8 +283,8 @@ class Mattermost(object):
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
         >>> print(json.dumps(conn.get_teams(), indent=4))
-        {
-            "39ou1iab7pnom39ou1iab7pnom": {
+        [
+            {
                 "allowed_domains": "",
                 "display_name": "AVO",
                 "name": "avo",
@@ -302,12 +299,10 @@ class Mattermost(object):
                 "id": "39ou1iab7pnom39ou1iab7pnom",
                 "description": ""
             }
-        }
+        ]
 
         """
-        response = self._session.get('%s/api/v3/teams/all' % self.server_url,
-                                     timeout=self.timeout)
-        url = '{}/api/v3/teams/all'.format(self.server_url)
+        url = '{}/api/v4/teams'.format(self.server_url)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
 
@@ -328,8 +323,7 @@ class Mattermost(object):
         """
 
         teams = self.get_teams()
-        for tid in teams.keys():
-            team = teams[tid]
+        for team in teams:
             if team['name'] == team_name:
                 return team['id']
 
@@ -337,7 +331,7 @@ class Mattermost(object):
 
     def get_channels(self):
         """
-        Get a list of available channels.
+        Get a list of public channels.
 
         Returns
         -------
@@ -350,30 +344,31 @@ class Mattermost(object):
         >>> import tomputils.mattermost as mm
         >>> conn = mm.Mattermost()
         >>> print(json.dumps(conn.get_channels(), indent=4))
+        [
         {
-            "39ou1iab7pnom39ou1iab7pnom": {
-                "allowed_domains": "",
-                "display_name": "AVO",
-                "name": "avo",
-                "invite_id": "89hj448uktds989hj448uktds9",
+                "extra_update_at": 1527181740217,
+                "total_msg_count": 83,
+                "display_name": "Town Square",
+                "name": "town-square",
                 "delete_at": 0,
-                "update_at": 1488239656296,
-                "create_at": 1487379468267,
-                "email": "mmadmin@example.com",
-                "company_name": "",
-                "allow_open_invite": true,
+                "update_at": 1525543855322,
+                "create_at": 1525543855322,
+                "header": "",
+                "team_id": "68hykcaoti8zfmjadmf28fnxba",
+                "purpose": "",
+                "creator_id": "",
+                "last_post_at": 1527181740220,
                 "type": "O",
-                "id": "39ou1iab7pnom39ou1iab7pnom",
-                "description": ""
-            }
+                "id": "93gzrbcp48shw2ngtbd79so4oo"
         }
+        ]
 
         """
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channels")
-        url = '{}/api/v3/teams/{}/channels/'.format(self.server_url,
-                                                    self.team_id)
+        url = '{}/api/v4/teams/{}/channels'.format(self.server_url,
+                                                   self.team_id)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
 
@@ -419,13 +414,12 @@ class Mattermost(object):
         post_data = {'channel_id': self.channel_id,
                      'client_ids': filename}
         file_data = {'files': (filename, open(file_path, 'rb'))}
-        url = '%s/api/v3/teams/%s/files/upload' % (self.server_url,
-                                                   self.team_id)
+        url = '%s/api/v4/files' % self.server_url
         response = self._request(self._session.post, url, data=post_data,
                                  files=file_data)
         LOG.debug("Received: %s - %s", response.status_code, response.text)
 
-        if response.status_code != 200:
+        if response.status_code != 201:
             if response.status_code == 400:
                 msg = "Type of the uploaded file doesn't match its file " \
                       " extension or uploaded file is an image that " \
@@ -463,8 +457,7 @@ class Mattermost(object):
 
         """
         LOG.debug("Getting message from mattermost: %s", post_id)
-        url = '%s/api/v3/teams/%s/channels/%s/posts/%s/get' \
-              % (self.server_url, self.team_id, self.channel_id, post_id)
+        url = '%s/api/v4/posts/%s' % (self.server_url, post_id)
         response = self._request(self._session.get, url)
 
         if response.status_code != 200:
@@ -472,16 +465,16 @@ class Mattermost(object):
 
         return response.content
 
-    def get_posts(self, offset=0, limit=10):
+    def get_posts(self, page=0, per_page=30):
         """
         Get a series of posts from a Mattermost channel.
 
         Parameters
         ----------
-        offset : int, optional
-            First post to retrieve.
-        limit : int, optional
-            Maximum number of posts to retrieve.
+        page : int, optional
+            The page to select
+        per_page : int, optional
+            Number of posts per page
 
         Returns
         -------
@@ -490,8 +483,8 @@ class Mattermost(object):
 
         """
         LOG.debug("Getting messages from mattermost")
-        url = '%s/api/v3/teams/%s/channels/%s/posts/page/%d/%d' \
-              % (self.server_url, self.team_id, self.channel_id, offset, limit)
+        url = '%s/api/v4/channels/%s/posts?page=%d&per_page=%d' \
+              % (self.server_url, self.channel_id, page, per_page)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
@@ -516,7 +509,7 @@ class Mattermost(object):
 
         """
         LOG.debug("Getting a file from mattermost")
-        url = '%s/api/v3/files/%s/get' % (self.server_url, file_id)
+        url = '%s/api/v4/files/%s' % (self.server_url, file_id)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
