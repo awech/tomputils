@@ -1,6 +1,8 @@
-# https://caremad.io/posts/2013/07/setup-vs-requirement/
+# Please ignore me. I'm just here to keep RTD happy. Otherwise it gets fussy
+# about c libraries.
+# you're probably wanting: python setup.py install
 
---index-url https://pypi.python.org/simple/
-
--e .
-
+requests
+future
+numpydoc
+pika
