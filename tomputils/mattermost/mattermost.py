@@ -395,6 +395,70 @@ class Mattermost(object):
 
         return None
 
+    def get_team_stats(self):
+        """
+        Return stats for a specific team.
+
+        Returns
+        -------
+        JSON
+            User stats for a team.
+        """
+        if self.team_id is None:
+            raise RuntimeError("Please set team_id before calling"
+                               "get_team_stats")
+        url = '%s/api/v4/teams/%s/stats' % (self.server_url, self.team_id)
+        response = self._request(self._session.get, url)
+        return json.loads(response.content)
+
+    def get_team_users(self, page=0, per_page=60):
+        """
+        Get a list of users on the given team.
+
+        Parameters
+        ----------
+        page : int, optional
+            Which page to return.
+
+        per_page : int, optional
+            Number of users per page.
+
+        Returns
+        -------
+        JSON
+            Users on team
+
+        Examples
+        --------
+        >>> import json
+        >>> import tomputils.mattermost as mm
+        >>> conn = mm.Mattermost()
+        >>> print(json.dumps(conn.get_users(), indent=4))
+        [
+            {
+                "username": "auser",
+                "first_name": "",
+                "last_name": "",
+                "roles": "system_user",
+                "locale": "en",
+                "delete_at": 0,
+                "update_at": 1526962598413,
+                "create_at": 1526516730888,
+                "auth_service": "",
+                "email": "mail@example.com",
+                "auth_data": "",
+                "position": "",
+                "nickname": "",
+                "id": "dz1icdoalvn571r19yk6wx8tur"
+            }
+        ]
+
+        """
+        url = '%s/api/v4/users?in_team=%s&page=%d&per_page=%d' \
+              % (self.server_url, self.team_id, page, per_page)
+        response = self._request(self._session.get, url)
+        return json.loads(response.content)
+
     def upload(self, file_path):
         """
         Upload a file which can later be attached to a post.
