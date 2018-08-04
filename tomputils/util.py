@@ -101,12 +101,14 @@ def setup_logging(subject="Error logs"):
     Examples
     --------
     >>> from tomputils.util import *
-    >>> setup_logging()
-    >>>
+    >>> logger = setup_logging()
+    >>> logger.debug("Test message")
+    2018-08-04 13:26:24,616;DEBUG;Test message [<stdin>:1]
+    >>> 
+
 
     """
 
-    global logger
     logger = logging.getLogger("")
     logger.setLevel(logging.DEBUG)
 
@@ -125,3 +127,5 @@ def setup_logging(subject="Error logs"):
         logger.addHandler(handler)
     except KeyError:
         logger.info("SMTP logging not configured.")
+
+    return logger
