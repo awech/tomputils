@@ -69,7 +69,8 @@ def get_env_var(var, default=None):
     2018-08-04 01:18:44,863;DEBUG;NOTSET: close enough (default) [util.py:76]
     'close enough'
     >>> get_env_var("NOTSET")
-    2018-08-04 01:18:51,248;ERROR;Envionment variable NOTSET not set, exiting. [util.py:35]
+    2018-08-04 01:18:51,248;ERROR;Envionment variable NOTSET not set, exiting.
+    [util.py:35]
     >>>
 
     """
