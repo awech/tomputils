@@ -101,10 +101,11 @@ def setup_logging(subject="Error logs"):
     Examples
     --------
     >>> from tomputils.util import *
+    >>> global logger
     >>> logger = setup_logging()
     >>> logger.debug("Test message")
     2018-08-04 13:26:24,616;DEBUG;Test message [<stdin>:1]
-    >>> 
+    >>>
 
 
     """
