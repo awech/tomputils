@@ -15,6 +15,6 @@ A simple segmenting downloader.
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 
-from downloader import Downloader, fetch
+from .downloader import Downloader, fetch
 
 __all__ = ['fetch', 'Downloader']

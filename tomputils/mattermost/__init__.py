@@ -15,6 +15,6 @@ A simple Mattermost driver.
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 
-from mattermost import Mattermost, format_timedelta, format_span
+from .mattermost import Mattermost, format_timedelta, format_span
 
 __all__ = ['format_timedelta', 'format_span', 'Mattermost']
