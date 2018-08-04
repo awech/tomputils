@@ -5,13 +5,13 @@ tomputils is a collection of modules intended to support Tom's tools.
 """
 
 from setuptools import setup, find_packages
-import tomputils
+from tomputils import __version__
 
 DOCSTRING = __doc__.split("\n")
 
 setup(
     name="tomputils",
-    version=tomputils.__version__,
+    version=__version__,
     author="Tom Parker",
     author_email="tparker@usgs.gov",
     description=(DOCSTRING[1]),
