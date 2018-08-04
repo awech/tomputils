@@ -25,7 +25,7 @@ def exit_with_error(error):
 
     Examples
     --------
-    >>> from tomputils import *
+    >>> from tomputils.util import *
     >>> setup_logging()
     2018-08-04 01:13:36,086;INFO;SMTP logging not configured. [util.py:70]
     >>> exit_with_error("Just testing")
@@ -59,7 +59,7 @@ def get_env_var(var, default=None):
 
     Examples
     --------
-    >>> from tomputils import *
+    >>> from tomputils.util import *
     >>> setup_logging()
     2018-08-04 01:18:37,519;INFO;SMTP logging not configured. [util.py:99]
     >>> get_env_var("HOME")
@@ -94,7 +94,7 @@ def setup_logging():
 
     Examples
     --------
-    >>> from tomputils import *
+    >>> from tomputils.util import *
     >>> setup_logging()
     >>>
 

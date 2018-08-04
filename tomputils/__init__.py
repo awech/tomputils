@@ -16,8 +16,5 @@ A collection of supporting modules.
 """
 
 
-from .util import *
-
 __version__ = "1.3.0"
-__all__ = ['get_env_var', 'setup_logging', 'exit_with_error']
 
