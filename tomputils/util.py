@@ -38,6 +38,8 @@ def setup_logging():
     logger.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s [%(filename)s:%(lineno)s]")
+    ch.setFormatter(formatter)
     logger.addHandler(ch)
 
     try:
@@ -49,6 +51,6 @@ def setup_logging():
         handler.setLevel(logging.ERROR)
         logger.addHandler(handler)
     except KeyError:
-        logger.info("SMTP util not configured.")
+        logger.info("SMTP logging not configured.")
 
 

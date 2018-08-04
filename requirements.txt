@@ -6,3 +6,4 @@ requests
 future
 numpydoc
 pika
+buffering_smtp_handler

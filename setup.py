@@ -30,7 +30,8 @@ setup(
         'future',
         'pika',
         'pycurl',
-        'pyOpenSSL'
+        'pyOpenSSL',
+        'buffering_smtp_handler'
         ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

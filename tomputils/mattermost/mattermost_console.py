@@ -50,7 +50,7 @@ def _arg_parse():
     help_text = "Mattermost channel name. Will override " \
                 "MATTERMOST_CHANNEL_ID environment variable."
     parser.add_argument("--channel-name", help=help_text)
-    parser.add_argument("-v", "--verbose", help="Verbose logging",
+    parser.add_argument("-v", "--verbose", help="Verbose util",
                         action='store_true')
 
     return parser.parse_args()

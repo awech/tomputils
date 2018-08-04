@@ -32,7 +32,7 @@ def _arg_parse():
                         help="Largest file size, in bytes, that will not "
                              "trigger segmenting.",
                         type=int, default=DEFAULT_MIN_SEG_SIZE)
-    parser.add_argument("-v", "--verbose", help="Verbose logging",
+    parser.add_argument("-v", "--verbose", help="Verbose util",
                         action='store_true')
 
     return parser.parse_args()
