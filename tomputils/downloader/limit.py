@@ -1,5 +1,6 @@
 """Rate limiters with shared token bucket.
-source: https://stackoverflow.com/questions/456649/throttling-with-urllib2#456668
+source:
+    https://stackoverflow.com/questions/456649/throttling-with-urllib2#456668
 """
 
 import os
@@ -8,6 +9,7 @@ import threading
 import time
 import urllib
 import urlparse
+
 
 class TokenBucket(object):
     """An implementation of the token bucket algorithm.
@@ -33,12 +35,12 @@ class TokenBucket(object):
         sufficient tokens, otherwise the expected time until enough
         tokens become available."""
         self.lock.acquire()
-        tokens = max(tokens,self.tokens)
+        tokens = max(tokens, self.tokens)
         expected_time = (tokens - self.tokens) / self.fill_rate
         if expected_time <= 0:
             self._tokens -= tokens
         self.lock.release()
-        return max(0,expected_time)
+        return max(0, expected_time)
 
     @property
     def tokens(self):
@@ -52,9 +54,11 @@ class TokenBucket(object):
         self.lock.release()
         return value
 
+
 class RateLimit(object):
     """Rate limit a url fetch.
-    source: http://mail.python.org/pipermail/python-list/2008-January/472859.html
+    source:
+        http://mail.python.org/pipermail/python-list/2008-January/472859.html
     (but mostly rewritten)
     """
     def __init__(self, bucket, filename):
@@ -101,7 +105,7 @@ def main():
     if len(sys.argv) < 4:
         print 'Syntax: %s rate url1 url2 ...' % sys.argv[0]
         raise SystemExit(1)
-    rate_limit  = float(sys.argv[1])
+    rate_limit = float(sys.argv[1])
     urls = sys.argv[2:]
     bucket = TokenBucket(10*rate_limit, rate_limit)
 
@@ -109,9 +113,9 @@ def main():
 
     threads = []
     for url in urls:
-        path = urlparse.urlparse(url,'http')[2]
+        path = urlparse.urlparse(url, 'http')[2]
         filename = os.path.basename(path)
-        print 'Downloading "%s" to "%s"...' % (url,filename)
+        print 'Downloading "%s" to "%s"...' % (url, filename)
         rate_limiter = RateLimit(bucket, filename)
         t = threading.Thread(
             target=urllib.urlretrieve,
@@ -123,6 +127,7 @@ def main():
         t.join()
 
     print 'All downloads finished'
+
 
 if __name__ == "__main__":
     main()
