@@ -109,6 +109,7 @@ def setup_logging(subject="Error logs"):
 
     """
 
+    global logger
     logger = logging.getLogger("")
     logger.setLevel(logging.DEBUG)
 
