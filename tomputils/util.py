@@ -87,10 +87,15 @@ def get_env_var(var, default=None):
             return default
 
 
-def setup_logging():
+def setup_logging(subject="Error logs"):
     """
     Setup logging the way I like it. Optionally email error logs when provided
     with the correct environment variables.
+
+
+    Parameters
+    ----------
+    subject : subject used if email is generated
 
 
     Examples
@@ -112,7 +117,6 @@ def setup_logging():
     logger.addHandler(ch)
 
     try:
-        subject = "camfetcher logs"
         handler = BufferingSMTPHandler(os.environ['MAILHOST'],
                                        os.environ['LOG_SENDER'],
                                        os.environ['LOG_RECIPIENT'], subject,
