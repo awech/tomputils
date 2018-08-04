@@ -103,19 +103,19 @@ class RateLimit(object):
 def main():
     """Fetch the contents of urls"""
     if len(sys.argv) < 4:
-        print 'Syntax: %s rate url1 url2 ...' % sys.argv[0]
+        print('Syntax: %s rate url1 url2 ...' % sys.argv[0])
         raise SystemExit(1)
     rate_limit = float(sys.argv[1])
     urls = sys.argv[2:]
     bucket = TokenBucket(10*rate_limit, rate_limit)
 
-    print "rate limit = %.1f" % (rate_limit,)
+    print("rate limit = %.1f" % (rate_limit,))
 
     threads = []
     for url in urls:
         path = urlparse.urlparse(url, 'http')[2]
         filename = os.path.basename(path)
-        print 'Downloading "%s" to "%s"...' % (url, filename)
+        print('Downloading "%s" to "%s"...' % (url, filename))
         rate_limiter = RateLimit(bucket, filename)
         t = threading.Thread(
             target=urllib.urlretrieve,
@@ -126,7 +126,7 @@ def main():
     for t in threads:
         t.join()
 
-    print 'All downloads finished'
+    print('All downloads finished')
 
 
 if __name__ == "__main__":
