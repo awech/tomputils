@@ -93,10 +93,10 @@ class RateLimit(object):
                 self.avg_rate = rate
             else:
                 rate = self.avg_rate or 0.
-            print "%20s: %4.1f%%, %5.1f KiB/s, %.1f/%.1f KiB" % (
+            print("%20s: %4.1f%%, %5.1f KiB/s, %.1f/%.1f KiB" % (
                     self.filename, 100. * downloaded_kb / total_kb,
                     rate, downloaded_kb, total_kb,
-                )
+                ))
         self.last_update = now
 
 
