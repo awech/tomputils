@@ -127,9 +127,10 @@ def setup_logging(subject="Error logs"):
         handler = BufferingSMTPHandler(os.environ['MAILHOST'],
                                        os.environ['LOG_SENDER'],
                                        os.environ['LOG_RECIPIENT'], subject,
-                                       1000, "%(levelname)s - %(message)s")
+                                       1000, fmt)
         handler.setLevel(logging.ERROR)
         logger.addHandler(handler)
+        logger.info("SMTP configured, will send email.")
     except KeyError:
         logger.info("SMTP logging not configured.")
 
