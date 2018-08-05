@@ -89,15 +89,12 @@ def get_env_var(var, default=None):
 
 def setup_logging(subject="Error logs"):
     """
-    Setup logging the way I like it. Optionally email error logs when provided
-    with the correct environment variables.
+    Setup logging the way I like it. If the following environment variables are
+    provided, an email with error level logs will be sent.
 
-
-    Environment Variables
-    ---------------------
-    MAILHOST : where to email logs
-    LOG_SENDER: From: address
-    LOG_RECIPIENT: To: address
+    * MAILHOST : where to email logs
+    * LOG_SENDER: From: address
+    * LOG_RECIPIENT: To: address
 
 
     Parameters
