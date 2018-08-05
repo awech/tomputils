@@ -93,6 +93,13 @@ def setup_logging(subject="Error logs"):
     with the correct environment variables.
 
 
+    Environment Variables
+    ---------------------
+    MAILHOST : where to email logs
+    LOG_SENDER: From: address
+    LOG_RECIPIENT: To: address
+
+
     Parameters
     ----------
     subject : subject used if email is generated
@@ -105,8 +112,8 @@ def setup_logging(subject="Error logs"):
     >>> logger = setup_logging()
     >>> logger.debug("Test message")
     2018-08-04 13:26:24,616;DEBUG;Test message [<stdin>:1]
+    >>> logging.shutdown()
     >>>
-
 
     """
 
@@ -115,7 +122,7 @@ def setup_logging(subject="Error logs"):
     logger.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
-    fmt = "%(levelname): %(message)s [%(asctime)s - %(filename)s:%(lineno)s]"
+    fmt = "%(levelname)s - %(message)s (%(asctime)s %(filename)s:%(lineno)s)"
     formatter = logging.Formatter(fmt)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
