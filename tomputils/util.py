@@ -38,7 +38,7 @@ def exit_with_error(error):
     sys.exit(1)
 
 
-def get_env_var(var, default=None):
+def get_env_var(var, default=None, secret=False):
     """
     Retrieve an environment variable. A defult may be supplied and will be
     returned if the requested variable is not set. If no default is provided,
@@ -75,7 +75,8 @@ def get_env_var(var, default=None):
 
     """
     if var in os.environ:
-        logger.debug("%s: %s", var, os.environ[var])
+        if not secret:
+            logger.debug("%s: %s", var, os.environ[var])
         return os.environ[var]
 
     else:
@@ -83,7 +84,8 @@ def get_env_var(var, default=None):
             msg = "Envionment variable {} not set, exiting.".format(var)
             exit_with_error(EnvironmentError(msg))
         else:
-            logger.debug("%s: %s (default)", var, default)
+            if not secret:
+                logger.debug("%s: %s (default)", var, default)
             return default
 
 
