@@ -21,7 +21,8 @@ def exit_with_error(error):
 
     Parameters
     ----------
-    error : error message
+    error : string
+        error message
 
     Examples
     --------
@@ -49,8 +50,12 @@ def get_env_var(var, default=None, secret=False):
 
     Parameters
     ----------
-    var : variable to find
-    default: default returned if variable is unset
+    var : string
+        variable to find
+    default : string, optional
+        default returned if variable is unset
+    secret : boolean, optional
+        if true, do not log value.
 
     Returns
     -------
@@ -101,7 +106,8 @@ def setup_logging(subject="Error logs"):
 
     Parameters
     ----------
-    subject : subject used if email is generated
+    subject : string, optional
+        subject used if email is generated
 
 
     Examples
