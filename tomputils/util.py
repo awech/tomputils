@@ -126,8 +126,8 @@ def setup_logging(subject="Error logs"):
     logger.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
-    fmt = "%(asctime)s %(levelname)s - %(message)s" \
-          + "(%(filename)s-%(process)d:%(lineno)s)"
+    fmt = "%(asctime)s %(levelname)s - %(message)s " \
+          + "(%(filename)s:%(lineno)s PID %(process)d)"
     formatter = logging.Formatter(fmt)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
