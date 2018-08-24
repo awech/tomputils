@@ -40,7 +40,7 @@ def exit_with_error(error, exit_status=1):
     try:
         logger.error(error)
         logging.shutdown()
-    except:
+    finally:
         print(error, file=sys.stderr)
 
     sys.exit(exit_status)
