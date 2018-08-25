@@ -35,7 +35,6 @@ setup(
         'pycurl',
         'pyOpenSSL',
         'buffering_smtp_handler',
-        'git+https://github.com/tparker-usgs/py-single.git@33a0e31e248c96967b067e1eaaebc282e3abead4#egg=single',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
