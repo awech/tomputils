@@ -7,4 +7,4 @@ future
 numpydoc
 pika
 buffering_smtp_handler
--e git://github.com/tparker-usgs/py-single.git@py3#egg=single
+git+https://github.com/tparker-usgs/pysingle.git@py3/single-1.0
