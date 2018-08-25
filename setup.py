@@ -26,7 +26,7 @@ setup(
         "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
     ],
     dependency_links=[
-        'https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0'
+        'https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0.0'
     ],
     install_requires=[
         'requests',
@@ -35,7 +35,7 @@ setup(
         'pycurl',
         'pyOpenSSL',
         'buffering_smtp_handler',
-        'single>=1.0',
+        'git+https://github.com/tparker-usgs/py-single.git@33a0e31e248c96967b067e1eaaebc282e3abead4#egg=single',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
