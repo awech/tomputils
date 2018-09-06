@@ -12,7 +12,7 @@ from buffering_smtp_handler import BufferingSMTPHandler
 import sys
 
 
-def exit_with_error(error):
+def exit_with_error(error, exit_status=1):
     """
     Log an error and exit after clening up logging.
 
@@ -23,6 +23,8 @@ def exit_with_error(error):
     ----------
     error : string
         error message
+    exit_status : int
+        exit status return to shell
 
     Examples
     --------
@@ -34,9 +36,41 @@ def exit_with_error(error):
     >>>
 
     """
-    logger.error(error)
-    logging.shutdown()
-    sys.exit(1)
+
+    try:
+        logger.error(error)
+        logging.shutdown()
+    finally:
+        print(error, file=sys.stderr)
+
+    sys.exit(exit_status)
+
+
+def enforce_version(req_version, excuse):
+    """
+    Go no further if the python interpreter is too old.
+
+    Parameters
+    ----------
+    req_version : tuple
+        minimum acceptable version as returned by sys.version_info
+    excuse : string
+        Explanation for interpreter requirement
+
+    Examples
+    --------
+    >>> import sys
+    >>> import tomputils.util as tutil
+    >>> sys.version_info
+    sys.version_info(major=3, minor=6, micro=5, releaselevel='final', serial=0)
+    >>> msg = "Sorry, I need at least python 3.6 for a really good reason."
+    >>> tutil.enforce_version((3,6), msg)
+    >>> msg = "Sorry, I need at least python 3.7 for a really good reason."
+    >>> tutil.enforce_version((3,7), msg)
+    Sorry, I need at least python 3.7 for a really good reason.
+    """
+    if sys.version_info < req_version:
+        exit_with_error(excuse)
 
 
 def get_env_var(var, default=None, secret=False):

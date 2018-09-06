@@ -25,14 +25,17 @@ setup(
         "Topic :: Software Development :: Libraries",
         "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
     ],
+    dependency_links=[
+        'https://github.com/tparker-usgs/py-single/tarball/py3#egg=single-1.0.0'
+    ],
     install_requires=[
         'requests',
         'future',
         'pika',
         'pycurl',
         'pyOpenSSL',
-        'buffering_smtp_handler'
-        ],
+        'buffering_smtp_handler',
+    ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     scripts=['bin/singleTimeout.sh'],
