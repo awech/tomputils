@@ -39,7 +39,8 @@ setup(
     entry_points={
         'console_scripts': [
             'mattermost = tomputils.mattermost.mattermost_console:do_command',
-            'downloader = tomputils.downloader.downloader_console:download'
+            'downloader = tomputils.downloader.downloader_console:download',
+            'configupdater = tomputils.configupdater.configupdater_console:update'
         ]
     }
 )
