@@ -23,7 +23,9 @@ The svndir type is used to keep track of a collection of files stored in a remot
 
 localfile
 ---------
-The localfile type is used to keep track of a local file. It can be used in conjuntion with svndir to report file-level changes. Keys:
+The localfile type is used to keep track of a local file. It can be used in conjuntion with svndir to report file-level changes.
+If the file has a yaml extension, changes to the remote file will be validated before the working config is updated.
+Keys:
   * name - a name for this collection
   * type - localfile
   * source - local path to source file
@@ -31,7 +33,9 @@ The localfile type is used to keep track of a local file. It can be used in conj
 
 remotefile
 ----------
-The remotefile type is used to keep track of a single file stored on a remote server. Keys:
+The remotefile type is used to keep track of a single file stored on a remote server.
+If the file has a yaml extension, changes to the remote file will be validated before the working config is updated.
+Keys:
   * name - a name for this file
   * type - remotefile
   * source - URL of remote file 
