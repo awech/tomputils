@@ -82,3 +82,26 @@ Kill a job started with single.py if it has been running too long. Usage::
       -m ADDRESS              Address to email when a job is killed
       -g                      Kill job by group id rather than process id
       -v                      Print more stuff
+
+
+configupdater
+^^^^^^^^^^^^^
+
+Update a collection of configuration files stored in a remote repository. See the :ref:`annotated config file <configupdater.yaml>` for details. Usage::
+
+    usage: configupdater.py [-h] [--svnurl SVNURL | --url URL] [--user USER]
+                            [--passwd PASSWD]
+                            config
+
+    I look after a config file.
+
+    positional arguments:
+      config           Local config path
+
+    optional arguments:
+      -h, --help       show this help message and exit
+      --svnurl SVNURL  Subversion URL of config file
+      --url URL        URL of config file
+      --user USER      Username
+      --passwd PASSWD  password
+
