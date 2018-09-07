@@ -35,6 +35,7 @@ setup(
         'pycurl',
         'pyOpenSSL',
         'buffering_smtp_handler',
+        'svn'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
