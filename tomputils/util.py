@@ -10,6 +10,9 @@ import logging
 import os
 from buffering_smtp_handler import BufferingSMTPHandler
 import sys
+import pathlib
+import ruamel.yaml
+import errno
 
 
 def exit_with_error(error, exit_status=1):
@@ -178,3 +181,38 @@ def setup_logging(subject="Error logs"):
         logger.info("SMTP logging not configured.")
 
     return logger
+
+
+def parse_config(config_path):
+    """
+    Parse a local config file
+
+    Parameters
+    ----------
+    config_path : string
+        config file path
+
+
+    Examples
+    --------
+    >>> from tomputils.util import *
+    >>> config = tutils.parse_config("/tmp/test.yaml")
+    >>>
+
+    """
+    logger.debug("Parsing config %s", config_path)
+    config_file = pathlib.Path(config_path)
+    yaml = ruamel.yaml.YAML()
+    config = None
+    try:
+        config = yaml.load(config_file)
+    except ruamel.yaml.parser.ParserError as e1:
+        logger.error("Cannot parse config file")
+        exit_with_error(e1)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            logger.error("Cannot read config file %s", config_file)
+            exit_with_error(e)
+        else:
+            raise
+    return config
