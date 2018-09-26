@@ -329,9 +329,17 @@ class Mattermost(object):
 
         return None
 
-    def get_channels(self):
+    def get_channels(self, page=0, per_page=60):
         """
         Get a list of public channels.
+
+        Parameters
+        ----------
+        page : int, optional
+            Which page to return.
+
+        per_page : int, optional
+            Number of channels per page.
 
         Returns
         -------
@@ -367,8 +375,8 @@ class Mattermost(object):
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channels")
-        url = '{}/api/v4/teams/{}/channels'.format(self.server_url,
-                                                   self.team_id)
+        url = '{}/api/v4/teams/{}/channels?page={}&per_page={}'
+        url = url.format(self.server_url, self.team_id, page, per_page)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
 
@@ -529,7 +537,7 @@ class Mattermost(object):
 
         return response.content
 
-    def get_posts(self, page=0, per_page=30):
+    def get_posts(self, page=0, per_page=30, since=0):
         """
         Get a series of posts from a Mattermost channel.
 
@@ -539,6 +547,8 @@ class Mattermost(object):
             The page to select
         per_page : int, optional
             Number of posts per page
+        since : int, optional
+            Unix timestamp listing start of posts to return
 
         Returns
         -------
@@ -547,8 +557,8 @@ class Mattermost(object):
 
         """
         LOG.debug("Getting messages from mattermost")
-        url = '%s/api/v4/channels/%s/posts?page=%d&per_page=%d' \
-              % (self.server_url, self.channel_id, page, per_page)
+        url = '%s/api/v4/channels/%s/posts?page=%d&per_page=%d&since=%d' \
+              % (self.server_url, self.channel_id, page, per_page, since)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
@@ -574,6 +584,31 @@ class Mattermost(object):
         """
         LOG.debug("Getting a file from mattermost")
         url = '%s/api/v4/files/%s' % (self.server_url, file_id)
+        LOG.debug("Sending: %s", url)
+        response = self._request(self._session.get, url)
+
+        if response.status_code != 200:
+            raise RuntimeError("Server unhappy. (%s)", response)
+
+        return response.content
+    
+    def get_attachment_info(self, att_id):
+        """
+        Get metadata for a post attachment.
+
+        Parameters
+        ----------
+        att_id: str
+            Id of the attachment to retrieve info about.
+
+        Returns
+        -------
+        json
+            Attachment metadata in json format.
+
+        """
+        LOG.debug("Getting info for an attachment from mattermost")
+        url = '%s/api/v4/files/%s/info' % (self.server_url, att_id)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
