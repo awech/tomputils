@@ -1,17 +1,12 @@
-engines:
+version: "2"
+plugins:
   duplication:
     enabled: true
     config:
       languages:
         python:
           mass_threshold: 36
-  fixme:
-    enabled: true
   radon:
     enabled: true
     config:
       threshold: "C"
-ratings:
-  paths:
-  - "**.py"
-exclude_paths: []
