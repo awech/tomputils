@@ -329,7 +329,7 @@ class Mattermost(object):
 
         return None
 
-    def get_channels(self):
+    def get_channels(self, page=0, per_page=60):
         """
         Get a list of public channels.
 
@@ -367,8 +367,8 @@ class Mattermost(object):
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channels")
-        url = '{}/api/v4/teams/{}/channels'.format(self.server_url,
-                                                   self.team_id)
+        url = '{}/api/v4/teams/{}/channels?page={}&per_page={}'
+        url = url.format(self.server_url, self.team_id, page, per_page)
         response = self._request(self._session.get, url)
         return json.loads(response.content)
 
