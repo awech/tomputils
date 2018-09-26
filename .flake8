@@ -1,2 +1,2 @@
 [flake8]
-exclude = support,setup.py
+exclude = setup.py
