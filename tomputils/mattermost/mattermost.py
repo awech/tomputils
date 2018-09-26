@@ -591,7 +591,7 @@ class Mattermost(object):
             raise RuntimeError("Server unhappy. (%s)", response)
 
         return response.content
-    
+ 
     def get_attachment_info(self, att_id):
         """
         Get metadata for a post attachment.
