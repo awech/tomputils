@@ -529,7 +529,7 @@ class Mattermost(object):
 
         return response.content
 
-    def get_posts(self, page=0, per_page=30):
+    def get_posts(self, page=0, per_page=30, since=0):
         """
         Get a series of posts from a Mattermost channel.
 
@@ -539,6 +539,8 @@ class Mattermost(object):
             The page to select
         per_page : int, optional
             Number of posts per page
+        since : int, optional
+            Unix timestamp listing start of posts to return
 
         Returns
         -------
@@ -547,8 +549,8 @@ class Mattermost(object):
 
         """
         LOG.debug("Getting messages from mattermost")
-        url = '%s/api/v4/channels/%s/posts?page=%d&per_page=%d' \
-              % (self.server_url, self.channel_id, page, per_page)
+        url = '%s/api/v4/channels/%s/posts?page=%d&per_page=%d&since=%d' \
+              % (self.server_url, self.channel_id, page, per_page, since)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
