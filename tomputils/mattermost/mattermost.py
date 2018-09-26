@@ -333,6 +333,14 @@ class Mattermost(object):
         """
         Get a list of public channels.
 
+        Parameters
+        ----------
+        page : int, optional
+            Which page to return.
+
+        per_page : int, optional
+            Number of channels per page.
+
         Returns
         -------
         JSON
@@ -576,6 +584,31 @@ class Mattermost(object):
         """
         LOG.debug("Getting a file from mattermost")
         url = '%s/api/v4/files/%s' % (self.server_url, file_id)
+        LOG.debug("Sending: %s", url)
+        response = self._request(self._session.get, url)
+
+        if response.status_code != 200:
+            raise RuntimeError("Server unhappy. (%s)", response)
+
+        return response.content
+    
+    def get_attachment_info(self, att_id):
+        """
+        Get metadata for a post attachment.
+
+        Parameters
+        ----------
+        att_id: str
+            Id of the attachment to retrieve info about.
+
+        Returns
+        -------
+        json
+            Attachment metadata in json format.
+
+        """
+        LOG.debug("Getting info for an attachment from mattermost")
+        url = '%s/api/v4/files/%s/info' % (self.server_url, att_id)
         LOG.debug("Sending: %s", url)
         response = self._request(self._session.get, url)
 
