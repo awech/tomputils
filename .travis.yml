@@ -2,12 +2,12 @@ language: python
 
 branches:
     only:
-        - master
-matrix:
-    include:
-        - python: 2.7 --process-dependency-links --allow-all-external
-        - python: 3.6 --process-dependency-links --allow-all-external
+    - master
+python:
+    - "2.7"
+    - "3.6"
 install:
+    - pip install
     - pip install .
     - pip install flake8
 
