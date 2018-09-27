@@ -95,11 +95,15 @@ def update_localfile(config):
             shutil.copyfile(source, target)
         else:
             logger.info("Configfile has not changed.")
-    except FileNotFoundError:
-        logger.error("Container restarted, cannot verify config.")
-        target_dir = os.path.dirname(target)
-        pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, target)
+    except OSError as e:
+        # do it this way to preserve Py2 compat
+        if e.errno == errno.ENOENT:
+            logger.error("Container restarted, cannot verify config.")
+            target_dir = os.path.dirname(target)
+            pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+        else:
+            raise
 
 
 def update_remotefile(config):
