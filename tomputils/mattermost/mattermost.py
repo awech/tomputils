@@ -396,7 +396,13 @@ class Mattermost(object):
         if self.team_id is None:
             raise RuntimeError("Please set team_id before calling"
                                "get_channel_id")
-        channels = self.get_channels()
+        channels = []
+        i = 0
+        ch = self.get_channels()
+        while ch:
+            channels.extend(ch)
+            i += 1
+            ch = self.get_channels(page=i)
         for channel in channels:
             if channel['name'] == channel_name:
                 return channel['id']
