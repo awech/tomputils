@@ -36,7 +36,7 @@ setup(
         'pyOpenSSL',
         'buffering_smtp_handler',
         'svn',
-        'ruamel_yaml'
+        'ruamel.yaml'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
