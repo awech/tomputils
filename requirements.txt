@@ -8,4 +8,5 @@ numpydoc
 pika
 buffering_smtp_handler
 svn
-ruamel_yaml
+ruamelyaml
+jinja2
