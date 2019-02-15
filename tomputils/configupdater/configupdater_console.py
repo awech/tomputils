@@ -246,7 +246,7 @@ def main():
     global logger
     logger = tutil.setup_logging("CONFIG FILE ERROR")
 
-    my_config = bootstrap_config(args)
+    my_config = bootstrap_config()
     for config in my_config['configs']:
         update_config(config)
 

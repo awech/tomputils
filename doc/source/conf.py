@@ -29,7 +29,7 @@ from tomputils import __version__  # noqa
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
-            return MagicMock()
+        return MagicMock()
 
 
 MOCK_MODULES = ['pycurl', 'pyOpenSSL']
