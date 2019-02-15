@@ -7,11 +7,27 @@
 # Author(s):
 #   Tom Parker <tparker@usgs.gov>
 
-""" Watch config file for changes."""
+
+"""
+Keep an eye on a local config file, updating it when the upstream version
+changes.
+
+I will look to the environment for configuration, expecting to see the
+following environmentvariables:
+
+Required
+    * CU_CONFIG_URL=http://example.com/path/to/config.yml
+
+Optional
+    * CU_USER=user
+    * CU_PASSWORD=pass
+    * CU_LOCAL_CONFIG=/path/to/config.yml
+
+"""
+
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import argparse
 import logging
 import signal
 import requests
@@ -29,29 +45,16 @@ import svn.remote
 CONFIG_PATH = '/tmp/configupdater.yaml'
 
 
-def _arg_parse():
-    description = "I look after a config file."
-    parser = argparse.ArgumentParser(description=description)
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--url', help='URL of hosted config file')
-    parser.add_argument("--user", help="Username")
-    parser.add_argument("--passwd", help="password")
-    parser.add_argument("config", help="Local config path")
-
-    return parser.parse_args()
-
-
-def download_config(args):
-    try:
-        r = requests.get(args.url, auth=(args.user, args.passwd))
-        r.raise_for_status()
-        return r.text
-    except requests.exceptions.RequestException as e:
-        logger.error("Cannot retrieve config file from %s", args.url)
-        tutil.exit_with_error(e)
-
-
 def update_svndir(config):
+    """
+    Update a config file stored in svn.
+
+    Parameters
+    ----------
+    config : dict
+        This files config stanza.
+    """
+
     logger.debug("Checking out svndir %s to %s", config['source'],
                  config['target'])
 
@@ -62,6 +65,21 @@ def update_svndir(config):
 
 
 def validate(config_file):
+    """
+    Validate a YAML config file.
+
+    Parameters
+    ----------
+    config_file : str
+        Local path to config file.
+
+
+    Returns
+    -------
+    Bool
+        True if file contains valid YAML
+
+    """
     if config_file.endswith('yaml'):
         try:
             yaml = ruamel.yaml.YAML()
@@ -74,6 +92,14 @@ def validate(config_file):
 
 
 def update_localfile(config):
+    """
+    Update a config file stored at a local path.
+
+    Parameters
+    ----------
+    config : dict
+        This files config stanza.
+    """
     source = str(config['source'])
     target = str(config['target'])
     validate(source)
@@ -107,6 +133,14 @@ def update_localfile(config):
 
 
 def update_remotefile(config):
+    """
+    Update a config file stored at a URL.
+
+    Parameters
+    ----------
+    config : dict
+        This files config stanza.
+    """
     config_str = None
     try:
         r = requests.get(config['source'], auth=(config['user'],
@@ -129,6 +163,15 @@ def update_remotefile(config):
 
 
 def update_config(config):
+    """
+    Update a monitored config file.
+
+    Parameters
+    ----------
+    config : dict
+        This files config stanza.
+    """
+
     type = config['type']
 
     if type == 'svndir':
@@ -142,6 +185,19 @@ def update_config(config):
 
 
 def parse_config(config_path):
+    """
+    Parse my YAML config file.
+
+    Parameters
+    ----------
+    config_path : str
+        Path to my YAML config file.
+
+    Returns
+    -------
+    Dict
+        My configuration.
+    """
     logger.debug("Parsing config %s", config_path)
     config_file = pathlib.Path(config_path)
     yaml = ruamel.yaml.YAML()
@@ -161,14 +217,22 @@ def parse_config(config_path):
     return config
 
 
-def bootstrap_config(args):
+def bootstrap_config():
+    """
+    Retrieve and parse my config file.
+
+    Returns
+    -------
+    Dict
+        My configuration.
+    """
     bootstrap = {
         'name': 'bootstrap',
         'type': 'remotefile',
-        'source': args.url,
-        'target': CONFIG_PATH,
-        'user': args.user,
-        'passwd': args.passwd
+        'source': tutil.get_env_var('CU_CONFIG_URL'),
+        'target': tutil.get_env_var('CU_LOCAL_CONFIG', CONFIG_PATH),
+        'user': tutil.get_env_var('CU_USER', None),
+        'passwd': tutil.get_env_var('CU_PASSWORD', None)
     }
     update_config(bootstrap)
 
@@ -181,11 +245,10 @@ def main():
 
     global logger
     logger = tutil.setup_logging("CONFIG FILE ERROR")
-    args = _arg_parse()
 
     my_config = bootstrap_config(args)
     for config in my_config['configs']:
-        config = update_config(config)
+        update_config(config)
 
     logger.debug("That's all for now, bye.")
     logging.shutdown()
