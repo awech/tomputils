@@ -246,7 +246,7 @@ def main():
 
     global logger
     context_name = tutil.get_env_var('CU_CONTEXT_NAME', None)
-    
+
     if context_name:
         subject = "{} CONFIG FILE ERROR".format(context_name)
     else:
