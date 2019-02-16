@@ -116,15 +116,15 @@ def update_localfile(config):
                                       tofile=target)
         diff = list(result)
         if len(diff) > 0:
-            logger.error("Configfile has changed.")
+            logger.error("%s has changed.", target)
             logger.error("\n" + "".join(diff))
             shutil.copyfile(source, target)
         else:
-            logger.info("Configfile has not changed.")
+            logger.info("%s has not changed.", target)
     except OSError as e:
         # do it this way to preserve Py2 compat
         if e.errno == errno.ENOENT:
-            logger.error("Container restarted, cannot verify config.")
+            logger.error("Container restarted, cannot verify %s.", target)
             target_dir = os.path.dirname(target)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
