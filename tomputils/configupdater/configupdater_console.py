@@ -22,6 +22,7 @@ Optional
     * CU_USER=user
     * CU_PASSWORD=pass
     * CU_LOCAL_CONFIG=/path/to/config.yml
+    * CU_CONTEXT_NAME=my context
 
 """
 
@@ -244,7 +245,14 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     global logger
-    logger = tutil.setup_logging("CONFIG FILE ERROR")
+    context_name = tutil.get_env_var('CU_CONTEXT_NAME', None)
+    
+    if context_name:
+        subject = "{} CONFIG FILE ERROR".format(context_name)
+    else:
+        subject = "CONFIG FILE ERROR"
+
+    logger = tutil.setup_logging(subject)
 
     my_config = bootstrap_config()
     for config in my_config['configs']:
