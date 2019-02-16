@@ -245,9 +245,8 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     global logger
-    context_name = tutil.get_env_var('CU_CONTEXT_NAME', None)
-
-    if context_name:
+    if 'CU_CONTEXT_NAME' in os.environ:
+        context_name = os.environ['CU_CONTEXT_NAME']
         subject = "{} CONFIG FILE ERROR".format(context_name)
     else:
         subject = "CONFIG FILE ERROR"
