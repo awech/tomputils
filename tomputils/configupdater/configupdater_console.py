@@ -233,7 +233,7 @@ def bootstrap_config():
         'source': tutil.get_env_var('CU_CONFIG_URL'),
         'target': tutil.get_env_var('CU_LOCAL_CONFIG', CONFIG_PATH),
         'user': tutil.get_env_var('CU_USER', None),
-        'passwd': tutil.get_env_var('CU_PASSWORD', None)
+        'passwd': tutil.get_env_var('CU_PASSWORD', None, secret=True)
     }
     update_config(bootstrap)
 
