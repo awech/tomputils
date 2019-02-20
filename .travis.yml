@@ -1,15 +1,18 @@
 language: python
-
 branches:
-    only:
-    - master
+  only:
+  - master
 python:
-    - "2.7"
-    - "3.6"
+- '2.7'
+- '3.6'
 install:
-    - pip install
-    - pip install .
-    - pip install flake8
-
+- pip install
+- pip install .
+- pip install flake8
 script:
-    - flake8
+- flake8
+deploy:
+  provider: pypi
+  user: tparker
+  password:
+    secure: N2yaZtv6t06MLMetv/P1iFdlURMxQDnO4IwH5h5xR/HWw3VQ0l1M/2PHUfP7wio6GNTFzZuqd97sJ//E3VAmSCI8NAQVLdAeln0PgsI9B4VzZ3gNrcK2XkJmPVbUvfFe8+Xb8UjfEhVhnZo2613uTOPMkLD3radNbkTwZpPFWxSt7JCjAUVb7ZKp2hFc9Rv7EKded2TDZbSZiOyN78UgPMj2lfKEd/O9Pzew0i7vMWP5a3ByklMHEgwvLp3d6wv5p0DnktjVqhLLZKwY8xz72WXP+sdr04jkbM/PmKu14U7OfINUKYhi4+H5Rk8pLjggEIWILn+mtSsel5ampApQ0gk3Q72SS2hO1ZimmWiURSt61g0SfLhe1FJqcpp77br3fTgCjcAvDIDI9Pbycc/dnE3mW8J+ODEoVBNi7Y9hI0OoomVw0dpVMNI6i3HWU+La8rYEN+9XC8K9wZKqlzfo2CObuDMsccn3eyuQUBz/G1L6FuAb1KUwrmLMLUV5uD6GV2nFaMpoQ8KgetKcrP7nYPLOnRQurC7pi2Yj8LSNxmr/4XkjAOCtHOCuoSiyABBnjvlIv0wdhEMe/IIXZeuHAc5U6Yl/edVXiWBbz1GiL2lgHfBhlcE+C4jaATc1KVh/c60nXgvvy7zYVvZknCK6Q8j99/mfJXJ9cj8My9Be+qI=
