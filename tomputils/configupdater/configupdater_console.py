@@ -247,9 +247,9 @@ def main():
     global logger
     if 'CU_CONTEXT_NAME' in os.environ:
         context_name = os.environ['CU_CONTEXT_NAME']
-        subject = "{} CONFIG FILE ERROR".format(context_name)
+        subject = "{} config file changed".format(context_name)
     else:
-        subject = "CONFIG FILE ERROR"
+        subject = "Config file changed"
 
     logger = tutil.setup_logging(subject)
 
