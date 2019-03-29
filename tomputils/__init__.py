@@ -16,4 +16,4 @@ A collection of supporting modules.
 """
 
 
-__version__ = "1.12.15"
+__version__ = "1.12.16"
