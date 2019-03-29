@@ -10,8 +10,9 @@ import logging
 
 from future.builtins import *  # NOQA
 
-from .downloader import DEFAULT_MIN_SEG_SIZE, DEFAULT_MAX_CON
-from .downloader import Downloader, DEFAULT_MAX_RETRY
+from tomputils.downloader.downloader import DEFAULT_MIN_SEG_SIZE
+from tomputils.downloader.downloader import DEFAULT_MAX_CON
+from tomputils.downloader.downloader import Downloader, DEFAULT_MAX_RETRY
 
 LOG = logging.getLogger(__name__)
 
