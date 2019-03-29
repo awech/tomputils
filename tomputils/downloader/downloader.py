@@ -198,7 +198,7 @@ class Downloader(object):
                     c.code = curl.getinfo(pycurl.RESPONSE_CODE)
 
                     if c.code in STATUS_OK:
-                        LOG.info('%s: Download successed. (%d/%d)', c.name,
+                        LOG.info('%s: Download successful. (%d/%d)', c.name,
                                  c.segment_downloaded, c.segment_size)
                         con['free'].append(c)
 
