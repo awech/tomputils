@@ -248,7 +248,7 @@ class Downloader(object):
 
             mcurl.select(1.0)
 
-        msg = 'Download Succeeded! Total Elapsed %ds'.format(elapsed)
+        msg = 'Download Succeeded! Total Elapsed {}s'.format(elapsed)
         LOG.info(msg)
 
     def _get_segments(self, file_size, can_segment):
