@@ -21,5 +21,10 @@ DEFAULT_MIN_SEG_SIZE = 16 * 1024
 DEFAULT_MAX_CON = 4
 DEFAULT_MAX_RETRY = 5
 
-__all__ = ['fetch', 'Downloader', 'DEFAULT_MIN_SEG_SIZE', 'DEFAULT_MAX_CON',
-           'DEFAULT_MAX_RETRY']
+__all__ = [
+    "fetch",
+    "Downloader",
+    "DEFAULT_MIN_SEG_SIZE",
+    "DEFAULT_MAX_CON",
+    "DEFAULT_MAX_RETRY",
+]
