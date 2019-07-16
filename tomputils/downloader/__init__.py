@@ -15,6 +15,11 @@ A simple segmenting downloader.
     http://creativecommons.org/publicdomain/zero/1.0/
 """
 
-from .downloader import Downloader, fetch
+from tomputils.downloader.downloader import Downloader, fetch
 
-__all__ = ['fetch', 'Downloader']
+DEFAULT_MIN_SEG_SIZE = 16 * 1024
+DEFAULT_MAX_CON = 4
+DEFAULT_MAX_RETRY = 5
+
+__all__ = ['fetch', 'Downloader', 'DEFAULT_MIN_SEG_SIZE', 'DEFAULT_MAX_CON',
+           'DEFAULT_MAX_RETRY']

@@ -16,7 +16,7 @@ import os
 import time
 
 import pycurl
-from six import StringIO
+from six import BytesIO
 
 if os.name == 'posix':
     import signal
@@ -198,7 +198,7 @@ class Downloader(object):
                     c.code = curl.getinfo(pycurl.RESPONSE_CODE)
 
                     if c.code in STATUS_OK:
-                        LOG.info('%s: Download successed. (%d/%d)', c.name,
+                        LOG.info('%s: Download successful. (%d/%d)', c.name,
                                  c.segment_downloaded, c.segment_size)
                         con['free'].append(c)
 
@@ -248,7 +248,7 @@ class Downloader(object):
 
             mcurl.select(1.0)
 
-        msg = 'Download Succeeded! Total Elapsed %ds'.format(elapsed)
+        msg = 'Download Succeeded! Total Elapsed {}s'.format(elapsed)
         LOG.info(msg)
 
     def _get_segments(self, file_size, can_segment):
@@ -298,7 +298,7 @@ def _check_headers(url):
         Three-tuple of effective URL, size of the file in bytes, and true if
         the remote server supports segmented downloads.
     """
-    headers = StringIO()
+    headers = BytesIO()
     curl = pycurl.Curl()
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
     curl.setopt(pycurl.MAXREDIRS, 5)
@@ -318,7 +318,8 @@ def _check_headers(url):
 
     eurl = curl.getinfo(pycurl.EFFECTIVE_URL)
     size = int(curl.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD))
-    can_segment = headers.getvalue().find('Accept-Ranges') != -1
+    headers = headers.getvalue().decode('UTF-8')
+    can_segment = headers.find('Accept-Ranges') != -1
     if size < 1:
         can_segment = False
 
