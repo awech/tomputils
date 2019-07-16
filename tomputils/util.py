@@ -3,8 +3,7 @@
 utility functions.
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
 import os
@@ -163,17 +162,23 @@ def setup_logging(subject="Error logs"):
     logger.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
-    fmt = "%(asctime)s %(levelname)s - %(message)s " \
-          + "(%(filename)s:%(lineno)s PID %(process)d)"
+    fmt = (
+        "%(asctime)s %(levelname)s - %(message)s "
+        + "(%(filename)s:%(lineno)s PID %(process)d)"
+    )
     formatter = logging.Formatter(fmt)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
     try:
-        handler = BufferingSMTPHandler(os.environ['MAILHOST'],
-                                       os.environ['LOG_SENDER'],
-                                       os.environ['LOG_RECIPIENT'], subject,
-                                       1000, fmt)
+        handler = BufferingSMTPHandler(
+            os.environ["MAILHOST"],
+            os.environ["LOG_SENDER"],
+            os.environ["LOG_RECIPIENT"].split(","),
+            subject,
+            1000,
+            fmt,
+        )
         handler.setLevel(logging.ERROR)
         logger.addHandler(handler)
         logger.info("SMTP configured, will send email.")
